@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+flatpak remote-add --if-not-exists --system flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak remote-modify --system flathub --enable
+flatpak remote-delete --system fedora --force
+
+INSTALL_FILE="/usr/share/ublue-os/flatpaks/install"
+
+
+if [[ -f $INSTALL_FILE ]]; then
+  INSTALL_LIST=$(cat "$INSTALL_FILE" |xargs)
+  if [[ -n $INSTALL_LIST ]]; then
+    flatpak install --system --noninteractive flathub $INSTALL_LIST
+  fi
+fi

@@ -1,0 +1,8 @@
+[General]
+ColorScheme=AdaptaNokto
+BrowserApplication=org.mozilla.firefox.desktop
+TerminalApplication=alacritty
+TerminalService=Alacritty.desktop
+
+[KDE]
+LookAndFeelPackage=org.kde.breezedark.desktop

@@ -1,0 +1,22 @@
+{
+  "skip": [
+    "main"
+  ],
+  "include": {
+    "all": [
+      "org.mozilla.firefox"
+    ],
+    "kinoite": [
+      "org.kde.okular",
+      "org.kde.gwenview"
+    ],
+    "bazzite": [
+      "org.kde.okular",
+      "org.kde.gwenview",
+      "something.else"
+    ]
+  },
+  "exclude": {
+    "all": []
+  }
+}

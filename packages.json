@@ -1,0 +1,49 @@
+{
+  "all": {
+    "include": {
+      "all": [
+        "bat",
+        "etckeeper",
+        "entr",
+        "eza",
+        "netcat",
+        "nmap",
+        "picocom",
+        "tailscale",
+        "zsh",
+        
+        "guestfs-tools",
+        "libvirt",
+        "virt-install",
+        
+        "samba"
+      ],
+      "base": [
+        "mergerfs",
+        "snapraid"
+      ],
+      "kinoite": [
+        "alacritty",
+        "code",
+        "ddccontrol",
+        "virt-manager",
+        "virt-viewer",
+        "wireshark"
+      ]
+    },
+    "exclude": {
+      "all": [
+        "firefox",
+        "firefox-langpacks"
+      ]
+    }
+  },
+  "39": {
+    "include": {
+      "all": []
+    },
+    "exclude": {
+      "all": []
+    }
+  }
+}
