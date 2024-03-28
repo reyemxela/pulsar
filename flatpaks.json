@@ -12,8 +12,7 @@
     ],
     "bazzite": [
       "org.kde.okular",
-      "org.kde.gwenview",
-      "something.else"
+      "org.kde.gwenview"
     ]
   },
   "exclude": {
