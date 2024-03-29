@@ -1,6 +1,6 @@
 {
   "skip": [
-    "main"
+    "base"
   ],
   "include": {
     "all": [
