@@ -4,7 +4,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 6 * * 6'  # 06:00am UTC every Saturday
+    - cron: '0 22 * * 5'  # 10pm UTC on Friday (5/6pm EDT) - after upstream builds and before auto-updates at 4am Saturday
   push:
     branches:
       - main
