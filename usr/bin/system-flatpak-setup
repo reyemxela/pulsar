@@ -3,6 +3,7 @@
 if grep -qz 'fedora' <<< "$(flatpak remotes)"; then
   flatpak remote-delete fedora --force
   flatpak remote-delete fedora-testing --force
+fi
 
 flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak remote-modify --system flathub --enable
