@@ -30,6 +30,13 @@
         "virt-manager",
         "virt-viewer",
         "wireshark"
+      ],
+      "bazzite": [
+        "alacritty",
+        "code",
+        "virt-manager",
+        "virt-viewer",
+        "wireshark"
       ]
     },
     "exclude": {
