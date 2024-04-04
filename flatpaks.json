@@ -9,10 +9,6 @@
     "kinoite": [
       "org.kde.okular",
       "org.kde.gwenview"
-    ],
-    "bazzite": [
-      "org.kde.okular",
-      "org.kde.gwenview"
     ]
   },
   "exclude": {

@@ -6,9 +6,7 @@ My own custom [ublue](https://github.com/ublue-os/)-based Fedora immutable image
 ## Features
 
 ### Flatpaks
-On graphical images, a flatpak installer helper (`system-flatpak-setup.service`) is installed and set to run on boot. The script removes any default fedora repos and sets up flathub, as well as installing any specified apps.
-
-Since the apps in the install file (`/usr/share/ublue-os/flatpaks/install`) are checked and (re-)installed every time the script runs, this list is kept very minimal. It mainly consists of the bare essentials like Firefox/Okular/Gwenview/etc.
+On graphical images, a flatpak installer helper (`ublue-flatpak-manager.service`) is installed and enabled. The script removes any default fedora repos and sets up flathub, as well as installing any specified apps.
 
 ### Applications
 Along with some handy CLI tools, there are a few GUI applications layered as well. Whenever possible, flatpaks are preferred for GUI apps. However some things don't work well (or at all) as flatpaks, so those are layered.
