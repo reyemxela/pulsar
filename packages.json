@@ -3,6 +3,7 @@
     "include": {
       "all": [
         "bat",
+        "btop",
         "dua-cli",
         "etckeeper",
         "entr",
@@ -34,8 +35,6 @@
       "bazzite": [
         "alacritty",
         "code",
-        "virt-manager",
-        "virt-viewer",
         "wireshark"
       ]
     },
@@ -43,6 +42,11 @@
       "all": [
         "firefox",
         "firefox-langpacks"
+      ],
+      "bazzite-deck": [
+        "guestfs-tools",
+        "libvirt",
+        "virt-install"
       ]
     }
   },

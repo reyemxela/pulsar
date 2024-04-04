@@ -11,13 +11,16 @@ printf '[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/
 
 
 # build list of all packages requested for inclusion
-INCLUDED_PACKAGES=($(jq -r "[(.all.include | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\")[]), \
-                             (select(.\"$FEDORA_MAJOR_VERSION\" != null).\"$FEDORA_MAJOR_VERSION\".include | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\")[])] \
+# also subtract excludes in this step, to allow for overriding entries from "all"
+INCLUDED_PACKAGES=($(jq -r "[(.all.include | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\", select(.\"$FULL_IMAGE_NAME\" != null).\"$FULL_IMAGE_NAME\")[]), \
+                             (select(.\"$FEDORA_MAJOR_VERSION\" != null).\"$FEDORA_MAJOR_VERSION\".include | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\", select(.\"$FULL_IMAGE_NAME\" != null).\"$FULL_IMAGE_NAME\")[])] - \
+                            [(.all.exclude | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\", select(.\"$FULL_IMAGE_NAME\" != null).\"$FULL_IMAGE_NAME\")[]), \
+                             (select(.\"$FEDORA_MAJOR_VERSION\" != null).\"$FEDORA_MAJOR_VERSION\".exclude | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\", select(.\"$FULL_IMAGE_NAME\" != null).\"$FULL_IMAGE_NAME\")[])]
                              | sort | unique[]" /tmp/packages.json))
 
 # build list of all packages requested for exclusion
-EXCLUDED_PACKAGES=($(jq -r "[(.all.exclude | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\")[]), \
-                             (select(.\"$FEDORA_MAJOR_VERSION\" != null).\"$FEDORA_MAJOR_VERSION\".exclude | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\")[])] \
+EXCLUDED_PACKAGES=($(jq -r "[(.all.exclude | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\", select(.\"$FULL_IMAGE_NAME\" != null).\"$FULL_IMAGE_NAME\")[]), \
+                             (select(.\"$FEDORA_MAJOR_VERSION\" != null).\"$FEDORA_MAJOR_VERSION\".exclude | (.all, select(.\"$IMAGE_NAME\" != null).\"$IMAGE_NAME\", select(.\"$FULL_IMAGE_NAME\" != null).\"$FULL_IMAGE_NAME\")[])] \
                              | sort | unique[]" /tmp/packages.json))
 
 
