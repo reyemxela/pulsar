@@ -10,6 +10,9 @@ ARG IMAGE_SUFFIX="${IMAGE_SUFFIX:-main}"
 ARG FULL_IMAGE_NAME="${IMAGE_NAME}${IMAGE_SUFFIX:+-$IMAGE_SUFFIX}"
 ARG FEDORA_MAJOR_VERSION="${FEDORA_MAJOR_VERSION:-39}"
 
+# reinstall ublue-os-update-services for images that use ublue-update instead
+COPY --from=ghcr.io/ublue-os/config:latest /files/ublue-os-update-services /
+
 COPY usr /usr
 
 RUN mkdir -p /usr/share/ublue-os && \
