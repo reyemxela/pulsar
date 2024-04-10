@@ -6,7 +6,8 @@ RELEASE="$(rpm -E %fedora)"
 
 # get repos
 wget https://pkgs.tailscale.com/stable/fedora/tailscale.repo -O /etc/yum.repos.d/tailscale.repo
-wget https://copr.fedorainfracloud.org/coprs/errornointernet/mergerfs/repo/fedora-${RELEASE}/errornointernet-mergerfs-fedora-${RELEASE}.repo -O /etc/yum.repos.d/mergerfs.repo
+wget https://copr.fedorainfracloud.org/coprs/errornointernet/mergerfs/repo/fedora-${RELEASE}/errornointernet-mergerfs-fedora-${RELEASE}.repo -O /etc/yum.repos.d/_copr_errornointernet-mergerfs.repo
+wget https://copr.fedorainfracloud.org/coprs/matte-schwartz/sunshine/repo/fedora-${RELEASE}/matte-schwartz-sunshine-fedora-${RELEASE}.repo -O /etc/yum.repos.d/_copr_matte-schwartz-sunshine.repo
 printf '[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc' >/etc/yum.repos.d/vscode.repo
 
 

@@ -28,6 +28,7 @@
         "alacritty",
         "code",
         "ddccontrol",
+        "sunshine",
         "virt-manager",
         "virt-viewer",
         "wireshark"
@@ -35,6 +36,7 @@
       "bazzite": [
         "alacritty",
         "code",
+        "sunshine",
         "wireshark"
       ]
     },
