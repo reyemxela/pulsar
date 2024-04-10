@@ -16,4 +16,8 @@ else
   systemctl enable flatpak-system-update.timer
 fi
 
+if [[ -e /usr/bin/sunshine ]]; then
+  systemctl enable sunshine-workaround.service
+fi
+
 sed -i 's@SHELL=.*@SHELL=/usr/bin/zsh@' /etc/default/useradd
