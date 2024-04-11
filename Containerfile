@@ -13,7 +13,7 @@ ARG FEDORA_MAJOR_VERSION="${FEDORA_MAJOR_VERSION:-39}"
 # reinstall ublue-os-update-services for images that use ublue-update instead
 COPY --from=ghcr.io/ublue-os/config:latest /files/ublue-os-update-services /
 
-COPY usr /usr
+COPY system_files /
 
 RUN mkdir -p /usr/share/ublue-os && \
     echo "$FULL_IMAGE_NAME" >/usr/share/ublue-os/image-name

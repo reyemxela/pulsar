@@ -34,6 +34,9 @@ jobs:
           - image_name: bazzite
             image_suffix: deck
             major_version: 39
+          - image_name: bazzite
+            image_suffix: nvidia
+            major_version: 39
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -36,7 +36,10 @@
       "bazzite": [
         "alacritty",
         "code",
+        "ddccontrol",
         "sunshine",
+        "virt-manager",
+        "virt-viewer",
         "wireshark"
       ]
     },
@@ -48,7 +51,9 @@
       "bazzite-deck": [
         "guestfs-tools",
         "libvirt",
-        "virt-install"
+        "virt-install",
+        "virt-manager",
+        "virt-viewer"
       ]
     }
   },
