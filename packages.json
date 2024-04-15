@@ -11,6 +11,7 @@
         "netcat",
         "nmap",
         "picocom",
+        "strace",
         "tailscale",
         "zsh",
         
