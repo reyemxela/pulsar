@@ -29,7 +29,7 @@ jobs:
       matrix:
         image_name: [base, kinoite]
         image_suffix: [main, nvidia]
-        major_version: [39]
+        major_version: [40]
         include:
           - image_name: bazzite
             image_suffix: deck
