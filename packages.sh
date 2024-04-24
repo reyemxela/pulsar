@@ -5,9 +5,9 @@ set -ouex pipefail
 RELEASE="$(rpm -E %fedora)"
 
 # get repos
-wget https://pkgs.tailscale.com/stable/fedora/tailscale.repo -O /etc/yum.repos.d/tailscale.repo
-wget https://copr.fedorainfracloud.org/coprs/errornointernet/mergerfs/repo/fedora-${RELEASE}/errornointernet-mergerfs-fedora-${RELEASE}.repo -O /etc/yum.repos.d/_copr_errornointernet-mergerfs.repo
-wget https://copr.fedorainfracloud.org/coprs/matte-schwartz/sunshine/repo/fedora-${RELEASE}/matte-schwartz-sunshine-fedora-${RELEASE}.repo -O /etc/yum.repos.d/_copr_matte-schwartz-sunshine.repo
+curl -sSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo -o /etc/yum.repos.d/tailscale.repo
+curl -sSL https://copr.fedorainfracloud.org/coprs/errornointernet/mergerfs/repo/fedora-${RELEASE}/errornointernet-mergerfs-fedora-${RELEASE}.repo -o /etc/yum.repos.d/_copr_errornointernet-mergerfs.repo
+curl -sSL https://copr.fedorainfracloud.org/coprs/matte-schwartz/sunshine/repo/fedora-${RELEASE}/matte-schwartz-sunshine-fedora-${RELEASE}.repo -o /etc/yum.repos.d/_copr_matte-schwartz-sunshine.repo
 
 
 # build list of all packages requested for inclusion

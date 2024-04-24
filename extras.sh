@@ -7,7 +7,7 @@ set -ouex pipefail
 FONT_DIR=/usr/share/fonts/nerd-fonts
 mkdir -p "$FONT_DIR/Hack"
 FILE='Hack.tar.xz'
-wget -O "/tmp/$FILE" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$FILE"
+curl -sSL "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$FILE" -o "/tmp/$FILE"
 tar xJf "/tmp/$FILE" -C "$FONT_DIR/Hack"
 rm -f "/tmp/$FILE"
 fc-cache -f "$FONT_DIR/Hack"
@@ -19,8 +19,13 @@ if [[ -d /usr/share/plasma ]]; then # only run on KDE images
   TMPDIR="/tmp/adapta"
   mkdir -p "$TMPDIR"
 
-  wget -O "$TMPFILE" https://github.com/PapirusDevelopmentTeam/adapta-kde/archive/master.tar.gz
-  tar -xzf "$TMPFILE" -C "$TMPDIR"
+  curl -sSL https://github.com/PapirusDevelopmentTeam/adapta-kde/archive/master.tar.gz -o "$TMPFILE"
+  if ! tar -xzvvvf "$TMPFILE" -C "$TMPDIR"; then
+    id
+    ls -la /tmp
+    ls -la /tmp/adapta
+    exit 1
+  fi
 
   cp -R \
     "$TMPDIR/adapta-kde-master/aurorae" \
