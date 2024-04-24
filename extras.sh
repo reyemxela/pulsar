@@ -20,10 +20,14 @@ if [[ -d /usr/share/plasma ]]; then # only run on KDE images
   mkdir -p "$TMPDIR"
 
   curl -sSL https://github.com/PapirusDevelopmentTeam/adapta-kde/archive/master.tar.gz -o "$TMPFILE"
-  umask
-  ls -la /tmp
-  ls -la /tmp/adapta
-  tar -xzvf "$TMPFILE" --no-same-permissions -C "$TMPDIR"
+  if ! tar -xzf "$TMPFILE" --no-same-permissions -C "$TMPDIR"; then
+    if ! tar -xzf "$TMPFILE" --no-same-owner -C "$TMPDIR"; then
+      if ! tar -xzf "$TMPFILE" --no-same-permissions --no-same-owner -C "$TMPDIR"; then
+        TMPDIR=$(mktemp -d)
+        tar -xzf "$TMPFILE" --no-same-permissions --no-same-owner -C "$TMPDIR"
+      fi
+    fi
+  fi
 
   cp -R \
     "$TMPDIR/adapta-kde-master/aurorae" \
