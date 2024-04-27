@@ -6,21 +6,21 @@ set -ouex pipefail
 # nerd fonts
 FONT_DIR=/usr/share/fonts/nerd-fonts
 mkdir -p "$FONT_DIR/Hack"
-FILE='Hack.tar.xz'
-curl -sSL "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$FILE" -o "/tmp/$FILE"
-tar xJf "/tmp/$FILE" -C "$FONT_DIR/Hack"
-rm -f "/tmp/$FILE"
+
+TMPFILE="$(mktemp)"
+curl -sSL "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.tar.xz" -o "$TMPFILE"
+tar xJf "$TMPFILE" -C "$FONT_DIR/Hack"
+rm -f "$TMPFILE"
 fc-cache -f "$FONT_DIR/Hack"
 
 
 # adapta KDE theme
 if [[ -d /usr/share/plasma ]]; then # only run on KDE images
-  TMPFILE="/tmp/adapta.tar.gz"
-  TMPDIR="/tmp/adapta"
-  mkdir -p "$TMPDIR"
+  TMPFILE="$(mktemp)"
+  TMPDIR="$(mktemp -d)"
 
   curl -sSL https://github.com/PapirusDevelopmentTeam/adapta-kde/archive/master.tar.gz -o "$TMPFILE"
-  tar -xzf "$TMPFILE" --no-same-owner -C "$TMPDIR"
+  tar -xzf "$TMPFILE" --no-same-owner --no-same-permissions -C "$TMPDIR"
   
   cp -R \
     "$TMPDIR/adapta-kde-master/aurorae" \
