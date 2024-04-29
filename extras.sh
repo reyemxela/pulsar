@@ -14,8 +14,8 @@ rm -f "$TMPFILE"
 fc-cache -f "$FONT_DIR/Hack"
 
 
-# adapta KDE theme
 if [[ -d /usr/share/plasma ]]; then # only run on KDE images
+  # adapta KDE theme
   TMPFILE="$(mktemp)"
   TMPDIR="$(mktemp -d)"
 
@@ -29,5 +29,16 @@ if [[ -d /usr/share/plasma ]]; then # only run on KDE images
     "$TMPDIR/adapta-kde-master/plasma" \
     /usr/share
 
+  rm -rf "$TMPFILE" "$TMPDIR"
+
+  # switch-to-previous-desktop script
+  TMPFILE="$(mktemp)"
+  TMPDIR="$(mktemp -d)"
+
+  curl -sSL https://invent.kde.org/vladz/switch-to-previous-desktop/-/archive/master/switch-to-previous-desktop-master.tar.gz -o "$TMPFILE"
+  tar -xzf "$TMPFILE" --no-same-owner --no-same-permissions -C "$TMPDIR"
+
+  kpackagetool6 --type=KWin/Script -g -i "$TMPDIR/switch-to-previous-desktop-master/package"
+  
   rm -rf "$TMPFILE" "$TMPDIR"
 fi
