@@ -7,6 +7,7 @@
         "dua-cli",
         "etckeeper",
         "entr",
+        "evtest",
         "eza",
         "netcat",
         "nmap",
@@ -32,6 +33,7 @@
         "sunshine",
         "virt-manager",
         "virt-viewer",
+        "plasma-wallpapers-dynamic",
         "wireshark"
       ],
       "bazzite": [
@@ -41,6 +43,7 @@
         "sunshine",
         "virt-manager",
         "virt-viewer",
+        "plasma-wallpapers-dynamic",
         "wireshark"
       ]
     },
