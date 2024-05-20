@@ -11,6 +11,7 @@ systemctl enable libvirtd.service 2>/dev/null || true
 if [[ $FULL_IMAGE_NAME = 'bazzite-deck' ]]; then
   systemctl disable flatpak-system-update.timer
 else
+  sed -i 's/AutomaticUpdatePolicy=.*/AutomaticUpdatePolicy=stage/' /etc/rpm-ostreed.conf
   systemctl disable ublue-update.timer 2>/dev/null || true
   systemctl enable rpm-ostreed-automatic.timer
   systemctl enable flatpak-system-update.timer
