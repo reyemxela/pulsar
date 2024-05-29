@@ -21,4 +21,9 @@ if [[ -e /usr/bin/sunshine ]]; then
   systemctl enable sunshine-workaround.service
 fi
 
+# check for dumpcap specifically, since that's all the fix cares about
+if [[ -e /usr/bin/dumpcap ]]; then
+  systemctl enable wireshark-workaround.service
+fi
+
 sed -i 's@SHELL=.*@SHELL=/usr/bin/zsh@' /etc/default/useradd
