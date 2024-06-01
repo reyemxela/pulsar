@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # SCRIPT VERSION
-VER=2
+VER=3
 IMAGE_NAME=$(cat /usr/share/ublue-os/image-name)
 
 VER_FILE="/etc/ublue-os/flatpak-setup-version"
@@ -33,7 +33,6 @@ REMOVE_LIST_FILE="/usr/share/ublue-os/flatpak/remove"
 
 # Flatpak theming support
 flatpak override \
-  --env=GTK_THEME=Breeze:dark \
   --filesystem=xdg-config/gtk-4.0:ro \
   --filesystem=xdg-config/gtk-3.0:ro \
   --filesystem=xdg-data/icons:ro
