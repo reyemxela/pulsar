@@ -3,13 +3,14 @@
 # SCRIPT VERSION
 VER=3
 IMAGE_NAME=$(cat /usr/share/ublue-os/image-name)
+FULL_VER="$VER-$IMAGE_NAME"
 
 VER_FILE="/etc/ublue-os/flatpak-setup-version"
 VER_RAN=$(cat $VER_FILE)
 
 # Run script if updated
-if [[ -f $VER_FILE && $VER = $VER_RAN ]]; then
-  echo "Flatpak manager v$VER has already ran. Exiting..."
+if [[ -f $VER_FILE && $FULL_VER = $VER_RAN ]]; then
+  echo "Flatpak manager v$FULL_VER has already ran. Exiting..."
   exit 0
 fi
 
@@ -108,4 +109,4 @@ if [[ ! -f $VER_FILE && -f $REMOVE_LIST_FILE ]]; then
 fi
 
 mkdir -p /etc/ublue-os
-echo "$VER-$IMAGE_NAME" > $VER_FILE
+echo $FULL_VER > $VER_FILE
