@@ -1,12 +1,22 @@
+[Unit]
+Description=Workaround dumpcap not having the correct caps
+ConditionFileIsExecutable=/usr/bin/dumpcap
+After=local-fs.target
+
 [Service]
 Type=oneshot
 # Copy if it doesn't exist
-ExecStartPre=/usr/bin/bash -c "[ -x /usr/local/bin/.dumpcap ] || /usr/bin/cp -p $(readlink -f /usr/bin/dumpcap) /usr/local/bin/.dumpcap"
+ExecStartPre=/usr/bin/bash -c "[ -x /usr/local/bin/.dumpcap ] || /usr/bin/cp -p /usr/bin/dumpcap /usr/local/bin/.dumpcap"
 # This is faster than using .mount unit. Also allows for the previous line/cleanup
-ExecStartPre=/usr/bin/bash -c "/usr/bin/mount --bind /usr/local/bin/.dumpcap $(readlink -f /usr/bin/dumpcap)"
+ExecStartPre=/usr/bin/mount --bind /usr/local/bin/.dumpcap /usr/bin/dumpcap
+# Fix group ownership (sometimes ends up as wrong group)
+ExecStart=/usr/bin/chgrp wireshark /usr/bin/dumpcap
 # Fix caps
-ExecStart=/usr/bin/bash -c "/usr/sbin/setcap cap_net_raw,cap_net_admin=ep $(readlink -f /usr/bin/dumpcap)"
+ExecStart=/usr/sbin/setcap cap_net_raw,cap_net_admin=ep /usr/bin/dumpcap
 # Clean-up after ourselves
-ExecStop=/usr/bin/bash -c "/usr/bin/umount $(readlink -f /usr/bin/dumpcap)"
+ExecStop=/usr/bin/umount /usr/bin/dumpcap
 ExecStop=/usr/bin/rm /usr/local/bin/.dumpcap
 RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

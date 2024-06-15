@@ -22,9 +22,6 @@ if [[ -e /usr/bin/sunshine ]]; then
 fi
 
 if [[ -e /usr/bin/dumpcap ]]; then
-  # group sometimes gets set to something other than what's in /etc/group for some reason
-  chgrp wireshark /usr/bin/dumpcap
-  
   systemctl enable wireshark-workaround.service
 fi
 
