@@ -13,3 +13,25 @@ configure-mangohud:
   cp -R /usr/share/ublue-os/mangohud-config/MangoHud ~/.config
   cp -R /usr/share/ublue-os/mangohud-config/environment.d ~/.config
   echo "Log out to apply environment changes"
+
+add-to-group GROUP="" USER="$USER":
+  #!/usr/bin/bash
+
+  group="{{ GROUP }}"
+  user="{{ USER }}"
+
+  if [[ -z $group ]]; then
+    echo "Please specify a group"
+    exit 1
+  fi
+
+  if ! grep -q "^${group}:" /etc/group; then
+    line="$(getent group $group)"
+    if [[ -z $line ]]; then
+      echo "Group '$group' not found"
+      exit 1
+    fi
+    sudo bash -c "echo '$line' >> /etc/group"
+  fi
+
+  sudo usermod -aG "$group" "$user"
