@@ -35,6 +35,9 @@ jobs:
             image_suffix: deck
             major_version: 40
     steps:
+      - name: Print free disk space
+        run: df -h
+        
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -135,7 +138,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           oci: false
 
-      # Workaround bug where capital letters in your GitHub username make it impossible to push to GHCR.
+      # Workaround bug where capital letters in your GitHub userna| awk -F ':' '{sum+=$NF} END {print sum}' | numfmt --to=iec-ime make it impossible to push to GHCR.
       # https://github.com/macbre/push-to-ghcr/issues/12
       - name: Lowercase Registry
         id: registry_case
@@ -186,3 +189,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           echo "${{ toJSON(steps.push.outputs) }}"
+      
+      - name: Print free disk space end
+        if: success() || failure()
+        run: df -h
