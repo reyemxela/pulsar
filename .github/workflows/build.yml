@@ -35,14 +35,8 @@ jobs:
             image_suffix: deck
             major_version: 40
     steps:
-      - name: Print disk space
-        run: df -h
-        
       - name: Maximize build space
         uses: ublue-os/remove-unwanted-software@v7
-
-      - name: Print disk space after
-        run: df -h
         
       - name: Checkout
         uses: actions/checkout@v4
