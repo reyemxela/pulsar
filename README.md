@@ -21,8 +21,7 @@ For example:
 There are a few other extras and tweaks added to the images:
 
 - **All:**
-  - `zsh` set as default shell for new users
-  - A few additional `just` commands
+  - A few additional packages and `just` commands
 - **Graphical images:**
   - Include a tweaked `Alacritty-distrobox.desktop` file for distinct host/distrobox shortcuts and sessions
 - **Plasma-based images:**

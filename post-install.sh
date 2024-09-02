@@ -24,5 +24,3 @@ fi
 if [[ -e /usr/bin/dumpcap ]]; then
   systemctl enable wireshark-workaround.service
 fi
-
-sed -i 's@SHELL=.*@SHELL=/usr/bin/zsh@' /etc/default/useradd
