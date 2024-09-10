@@ -17,10 +17,11 @@ else
   systemctl enable flatpak-system-update.timer
 fi
 
+# rechunk quirks
 if [[ -e /usr/bin/sunshine ]]; then
-  systemctl enable sunshine-workaround.service
+  setcap cap_sys_admin+p "$(readlink -f /usr/bin/sunshine)"
 fi
 
-if [[ -e /usr/bin/dumpcap ]]; then
-  systemctl enable wireshark-workaround.service
+if [[ -e /usr/bin/gamescope ]]; then
+  setcap cap_sys_nice=eip /usr/bin/gamescope
 fi
