@@ -128,7 +128,7 @@ jobs:
         id: rechunk
         uses: hhd-dev/rechunk@v0.8.6
         with:
-          rechunk: 'ghcr.io/hhd-dev/rechunk:v0.8.3'
+          rechunk: 'ghcr.io/hhd-dev/rechunk:v0.8.6'
           ref: 'raw-img'
           prev-ref: '${{ steps.generate-prev-ref.outputs.ref }}'
           version: '${{ env.SOURCE_IMAGE_VERSION }}'
