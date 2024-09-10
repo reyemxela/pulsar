@@ -248,6 +248,7 @@ jobs:
         uses: EyeCantCU/cosign-action/sign@v0.3.0
         if: github.event_name != 'pull_request'
         with:
+          registry: ${{ env.IMAGE_REGISTRY }}
           containers: ${{ env.FULL_IMAGE_NAME }}
           registry-token: ${{ secrets.GITHUB_TOKEN }}
           signing-secret: ${{ secrets.SIGNING_SECRET }}
