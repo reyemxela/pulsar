@@ -206,8 +206,8 @@ jobs:
             sudo apt update
             sudo apt install sbsigntool curl openssl
           fi
+          KVER="$(podman run --rm rechunked-img uname -r)"
           TMP=$(podman create rechunked-img bash)
-          KVER="$(podman exec $TMP uname -r)"
           podman cp "$TMP:/usr/lib/modules/$KVER/vmlinuz" .
           podman rm $TMP
           sbverify --list vmlinuz
