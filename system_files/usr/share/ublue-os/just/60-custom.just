@@ -11,8 +11,12 @@ configure-mangohud:
   #!/usr/bin/bash
   set -euo pipefail
   cp -R /usr/share/ublue-os/mangohud-config/MangoHud ~/.config
-  cp -R /usr/share/ublue-os/mangohud-config/environment.d ~/.config
-  echo "Log out to apply environment changes"
+  if grep -q '\-deck' /usr/share/ublue-os/image-name; then
+    echo "Not applying system-wide env variable for deck image"
+  else
+    cp -R /usr/share/ublue-os/mangohud-config/environment.d ~/.config
+    echo "Log out to apply environment changes"
+  fi
 
 add-to-group GROUP="" USER="$USER":
   #!/usr/bin/bash
