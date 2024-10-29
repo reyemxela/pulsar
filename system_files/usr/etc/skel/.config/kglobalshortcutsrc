@@ -1,13 +1,3 @@
-[Alacritty-distrobox.desktop]
-New=Meta+Return,none,New Terminal
-_k_friendly_name=Alacritty (distrobox)
-_launch=none,none,Alacritty (distrobox)
-
-[Alacritty.desktop]
-New=Meta+Shift+Return,none,New Terminal
-_k_friendly_name=Alacritty
-_launch=none,none,Alacritty
-
 [kwin]
 Switch to Desktop 1=Meta+1,Ctrl+F1,Switch to Desktop 1
 Switch to Desktop 2=Meta+2,Ctrl+F2,Switch to Desktop 2
@@ -34,7 +24,3 @@ activate task manager entry 10=none,Meta+0,Activate Task Manager Entry 10
 manage activities=none,Meta+Q,Show Activity Switcher
 next activity=none,Meta+Tab,Walk through activities
 previous activity=none,Meta+Shift+Tab,Walk through activities (Reverse)
-
-[org.kde.spectacle.desktop]
-RectangularRegionScreenShot=Meta+Shift+Print\tMeta+Shift+S,Meta+Shift+Print,Capture Rectangular Region
-
