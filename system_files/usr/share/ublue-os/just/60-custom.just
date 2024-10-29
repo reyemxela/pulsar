@@ -39,3 +39,8 @@ add-to-group GROUP="" USER="$USER":
   fi
 
   sudo usermod -aG "$group" "$user"
+
+fix-hardware-cursor:
+  #!/usr/bin/bash
+  mkdir -p "$HOME/.config/environment.d"
+  echo 'HIDE_CURSOR_DELAY_MS=99999' > "$HOME/.config/environment.d/hidecursor.conf"
