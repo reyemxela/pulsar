@@ -38,11 +38,11 @@ jobs:
       matrix:
         image_name: [base, kinoite, bazzite]
         image_suffix: [main, nvidia]
-        major_version: [40]
+        major_version: [41]
         include:
           - image_name: bazzite
             image_suffix: deck
-            major_version: 40
+            major_version: 41
     steps:
       - name: Maximize build space
         uses: ublue-os/remove-unwanted-software@v7
