@@ -10,13 +10,11 @@ allow-low-ports:
 configure-mangohud:
   #!/usr/bin/bash
   set -euo pipefail
+  mkdir -p ~/.config ~/.local/share/applications
   cp -R /usr/share/ublue-os/mangohud-config/MangoHud ~/.config
-  if grep -q '\-deck' /usr/share/ublue-os/image-name; then
-    echo "Not applying system-wide env variable for deck image"
-  else
-    cp -R /usr/share/ublue-os/mangohud-config/environment.d ~/.config
-    echo "Log out to apply environment changes"
-  fi
+  sed 's!^Exec=\(/usr/bin/bazzite-steam.*\)!Exec=/usr/bin/mangohud \1!' /usr/share/applications/steam.desktop >~/.local/share/applications/steam.desktop
+  update-desktop-database
+  echo "Relaunch Steam to apply changes"
 
 add-to-group GROUP="" USER="$USER":
   #!/usr/bin/bash
