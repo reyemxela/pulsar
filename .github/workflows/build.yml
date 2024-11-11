@@ -42,13 +42,14 @@ jobs:
         include:
           - image_name: base
             image_suffix: nvidia
-            major_version: 41
           - image_name: bazzite
             image_suffix: deck
-            major_version: 40
+            kernel_flavor: bazzite
+            kernel_version: 6.11.6-302.bazzite.fc41.x86_64
           - image_name: bazzite
             image_suffix: main
-            major_version: 40
+            kernel_flavor: bazzite
+            kernel_version: 6.11.6-302.bazzite.fc41.x86_64
           
     steps:
       - name: Maximize build space
@@ -69,6 +70,13 @@ jobs:
           echo "IMAGE_SUFFIX=${IMAGE_SUFFIX}" >> $GITHUB_ENV
           echo "FULL_IMAGE_NAME=${{ matrix.image_name }}${IMAGE_SUFFIX:+-$IMAGE_SUFFIX}" >> $GITHUB_ENV
           echo "FEDORA_MAJOR_VERSION=${{ matrix.major_version }}" >> $GITHUB_ENV
+          echo "KERNEL_FLAVOR=${{ matrix.kernel_flavor }}" >> $GITHUB_ENV
+          echo "KERNEL_VERSION=${{ matrix.kernel_version }}" >> $GITHUB_ENV
+          if [[ "${{ env.KERNEL_FLAVOR }}" != "" && "${{ env.KERNEL_VERSION }}" != "" ]]; then
+            echo "BUILD_TARGET=customkernel" >> $GITHUB_ENV
+          else
+            echo "BUILD_TARGET=default" >> $GITHUB_ENV
+          fi
 
       - name: Pull main, rechunk images
         uses: Wandalen/wretry.action@v3.5.0
@@ -82,6 +90,11 @@ jobs:
 
             # Add rechunk as well to remove this source of failure
             sudo podman pull ghcr.io/hhd-dev/rechunk:v0.8.3
+
+            # Also pull custom kernel if one is specified            
+            if [[ "${{ env.BUILD_TARGET }}" == "customkernel" ]]; then
+              sudo podman pull ghcr.io/ublue-os/${{ env.KERNEL_FLAVOR }}-kernel:${{ env.FEDORA_MAJOR_VERSION}}-${{ env.KERNEL_VERSION }}
+            fi
 
       - name: Get source versions
         id: labels
@@ -97,22 +110,28 @@ jobs:
               echo "inspected image version must not be empty or null"
               exit 1
             fi
-            kver=$(jq -r '.Labels["ostree.linux"]' source.json)
-            if [ -z "$kver" ] || [ "null" = "$kver" ]; then
-              echo "inspected image kernel version must not be empty or null"
-              exit 1
-            fi
             echo "SOURCE_IMAGE_VERSION=$ver" >> $GITHUB_ENV
-            echo "KERNEL_VERSION=$kver" >> $GITHUB_ENV
+
+            if [[ "${{ env.BUILD_TARGET }}" == "customkernel" ]]; then
+              kver=$(jq -r '.Labels["ostree.linux"]' source.json)
+              if [ -z "$kver" ] || [ "null" = "$kver" ]; then
+                echo "inspected image kernel version must not be empty or null"
+                exit 1
+              fi
+              echo "KERNEL_VERSION=$kver" >> $GITHUB_ENV
+            fi
 
       # Build image using buildah and save it to raw-img
       - name: Build Image
         id: build_image
         run: |
           sudo buildah build \
+            --target ${{ env.BUILD_TARGET }} \
             --build-arg IMAGE_NAME=${{ env.IMAGE_NAME }} \
             --build-arg IMAGE_SUFFIX=${{ env.IMAGE_SUFFIX }} \
             --build-arg FEDORA_MAJOR_VERSION=${{ env.FEDORA_MAJOR_VERSION }} \
+            --build-arg KERNEL_FLAVOR=${{ env.KERNEL_FLAVOR }} \
+            --build-arg KERNEL_VERSION=${{ env.KERNEL_VERSION }} \
             --tag raw-img .
 
       - name: Remove auxiliary images
