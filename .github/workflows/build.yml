@@ -75,7 +75,7 @@ jobs:
           echo "FEDORA_MAJOR_VERSION=${{ matrix.major_version }}" >> $GITHUB_ENV
           echo "KERNEL_FLAVOR=${{ matrix.kernel_flavor }}" >> $GITHUB_ENV
           echo "KERNEL_VERSION=${{ matrix.kernel_version }}" >> $GITHUB_ENV
-          if [[ "${KERNEL_FLAVOR}" != "" && "${KERNEL_VERSION}" != "" ]]; then
+          if [[ "${{ matrix.kernel_flavor }}" != "" && "${{ matrix.kernel_version }}" != "" ]]; then
             echo "BUILD_TARGET=customkernel" >> $GITHUB_ENV
           else
             echo "BUILD_TARGET=default" >> $GITHUB_ENV
@@ -115,7 +115,7 @@ jobs:
             fi
             echo "SOURCE_IMAGE_VERSION=$ver" >> $GITHUB_ENV
 
-            if [[ "${{ env.BUILD_TARGET }}" == "customkernel" ]]; then
+            if [[ "${{ env.BUILD_TARGET }}" == "default" ]]; then
               kver=$(jq -r '.Labels["ostree.linux"]' source.json)
               if [ -z "$kver" ] || [ "null" = "$kver" ]; then
                 echo "inspected image kernel version must not be empty or null"
