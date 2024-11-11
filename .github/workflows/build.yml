@@ -42,12 +42,15 @@ jobs:
         include:
           - image_name: base
             image_suffix: nvidia
+            major_version: 41
           - image_name: bazzite
             image_suffix: deck
+            major_version: 41
             kernel_flavor: bazzite
             kernel_version: 6.11.6-302.bazzite.fc41.x86_64
           - image_name: bazzite
             image_suffix: main
+            major_version: 41
             kernel_flavor: bazzite
             kernel_version: 6.11.6-302.bazzite.fc41.x86_64
           
