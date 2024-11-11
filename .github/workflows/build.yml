@@ -72,7 +72,7 @@ jobs:
           echo "FEDORA_MAJOR_VERSION=${{ matrix.major_version }}" >> $GITHUB_ENV
           echo "KERNEL_FLAVOR=${{ matrix.kernel_flavor }}" >> $GITHUB_ENV
           echo "KERNEL_VERSION=${{ matrix.kernel_version }}" >> $GITHUB_ENV
-          if [[ "${{ env.KERNEL_FLAVOR }}" != "" && "${{ env.KERNEL_VERSION }}" != "" ]]; then
+          if [[ "${KERNEL_FLAVOR}" != "" && "${KERNEL_VERSION}" != "" ]]; then
             echo "BUILD_TARGET=customkernel" >> $GITHUB_ENV
           else
             echo "BUILD_TARGET=default" >> $GITHUB_ENV
