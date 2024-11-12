@@ -51,12 +51,6 @@ jobs:
             major_version: 40
           
     steps:
-      - name: Maximize build space
-        uses: ublue-os/remove-unwanted-software@v7
-        
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Matrix Variables
         shell: bash
         run: |
@@ -69,6 +63,12 @@ jobs:
           echo "IMAGE_SUFFIX=${IMAGE_SUFFIX}" >> $GITHUB_ENV
           echo "FULL_IMAGE_NAME=${{ matrix.image_name }}${IMAGE_SUFFIX:+-$IMAGE_SUFFIX}" >> $GITHUB_ENV
           echo "FEDORA_MAJOR_VERSION=${{ matrix.major_version }}" >> $GITHUB_ENV
+          
+      - name: Maximize build space
+        uses: ublue-os/remove-unwanted-software@v7
+        
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Pull main, rechunk images
         uses: Wandalen/wretry.action@v3.5.0
