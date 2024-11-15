@@ -36,19 +36,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_name: [base, kinoite]
+        image_name: [base, kinoite, bazzite]
         image_suffix: [main]
         major_version: [41]
         include:
           - image_name: base
             image_suffix: nvidia
             major_version: 41
-          - image_name: bazzite
-            image_suffix: deck
-            major_version: 40
-          - image_name: bazzite
-            image_suffix: main
-            major_version: 40
           
     steps:
       - name: Matrix Variables
