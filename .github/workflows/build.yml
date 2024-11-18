@@ -43,6 +43,9 @@ jobs:
           - image_name: base
             image_suffix: nvidia
             major_version: 41
+          - image_name: bazzite
+            image_suffix: deck
+            major_version: 41
           
     steps:
       - name: Matrix Variables
