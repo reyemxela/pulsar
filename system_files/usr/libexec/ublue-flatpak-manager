@@ -94,6 +94,8 @@ if [[ -f $INSTALL_LIST_FILE ]]; then
       # exit on error
       exit 1
     fi
+    # fix blank icons after background flatpak install
+    killall -SIGUSR1 plasmashell
   fi
 fi
 
