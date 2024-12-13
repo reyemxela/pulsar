@@ -17,6 +17,10 @@ else
   systemctl enable flatpak-system-update.timer
 fi
 
+# clean up autostarts
+rm -f /etc/skel/.config/autostart/steam.desktop
+rm -f /etc/profile.d/ublue-firstboot.sh
+
 # rechunk quirks
 if [[ -e /usr/bin/sunshine ]]; then
   setcap cap_sys_admin+p "$(readlink -f /usr/bin/sunshine)"
