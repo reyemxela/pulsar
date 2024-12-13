@@ -4,12 +4,17 @@
   ],
   "include": {
     "all": [
-      "org.mozilla.firefox"
+      "org.mozilla.firefox",
+      "org.telegram.desktop",
+      "md.obsidian.Obsidian",
+      "org.videolan.VLC",
+      "com.github.zocker_160.SyncThingy"
     ],
     "kinoite": [
       "org.kde.filelight",
       "org.kde.okular",
-      "org.kde.gwenview"
+      "org.kde.gwenview",
+      "org.kde.kcalc"
     ]
   },
   "exclude": {

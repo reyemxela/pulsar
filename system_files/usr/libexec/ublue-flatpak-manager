@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # SCRIPT VERSION
-VER=3
+VER=4
 IMAGE_NAME=$(cat /usr/share/ublue-os/image-name)
 FULL_VER="$VER-$IMAGE_NAME"
 
@@ -32,11 +32,13 @@ FLATPAK_LIST=$(flatpak list --columns=application)
 INSTALL_LIST_FILE="/usr/share/ublue-os/flatpak/install"
 REMOVE_LIST_FILE="/usr/share/ublue-os/flatpak/remove"
 
-# Flatpak theming support
+# Flatpak theming
 flatpak override \
   --filesystem=xdg-config/gtk-4.0:ro \
-  --filesystem=xdg-config/gtk-3.0:ro \
-  --filesystem=xdg-data/icons:ro
+  --filesystem=xdg-config/gtk-3.0:ro
+
+flatpak override \
+  --env=GTK_THEME=Breeze
 
 # XInput for Firefox
 flatpak override \
@@ -55,11 +57,6 @@ flatpak override \
 flatpak override \
   --filesystem=xdg-config/MangoHud:ro \
   --filesystem=xdg-config/vkBasalt:ro
-
-# Fix permissions for XIV Launcher
-flatpak override \
-  --device=dri \
-  dev.goats.xivlauncher
 
 # Params needed for HW accelerated video on Nvidia (Ignoring hybrid systems)
 if [[ $IMAGE_NAME =~ "nvidia" ]] && [ $(grep -o "\-display" <<< $(lshw -C display) | wc -l) -le 1 ] && grep -q "vendor: NVIDIA Corporation" <<< $(lshw -C display); then
