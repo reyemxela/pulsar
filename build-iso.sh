@@ -1,7 +1,7 @@
 #!/bin/bash
 
-IMAGE_NAME=kinoite
-IMAGE_SUFFIX=main
+IMAGE_NAME=bazzite
+IMAGE_SUFFIX=
 FEDORA_VERSION=41
 IMAGE_REPO=ghcr.io/reyemxela
 
@@ -15,6 +15,10 @@ sudo buildah build \
   --build-arg IMAGE_SUFFIX=$IMAGE_SUFFIX \
   --build-arg FEDORA_MAJOR_VERSION=$FEDORA_VERSION \
   --tag iso-build:latest
+
+if [ $? -ne 0 ]; then
+  exit 1
+fi
 
 sudo podman run --rm --privileged \
   --volume isocache:/cache \
@@ -37,6 +41,6 @@ cat << EOF
 ---
 ISO created. To create a test VM, run:
 
-virt-install --connect qemu:///system --name fedora${FEDORA_VERSION} --memory 4096 --vcpus 2 --disk size=20 --cdrom ${PWD}/deploy.iso --os-variant fedora${FEDORA_VERSION}
+virt-install --connect qemu:///system --name fedora${FEDORA_VERSION} --memory 4096 --vcpus 2 --disk size=20 --cdrom ${PWD}/deploy.iso --os-variant $(virt-install --osinfo list |grep -i fedora |head -1)
 
 EOF
