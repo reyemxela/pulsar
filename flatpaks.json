@@ -8,7 +8,8 @@
       "org.telegram.desktop",
       "md.obsidian.Obsidian",
       "org.videolan.VLC",
-      "com.github.zocker_160.SyncThingy"
+      "com.github.zocker_160.SyncThingy",
+      "org.gtk.Gtk3theme.Breeze"
     ],
     "kinoite": [
       "org.kde.filelight",
