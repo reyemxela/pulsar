@@ -5,8 +5,8 @@ set -ouex pipefail
 # exit if this image is in "skip" array
 jq -e ".skip | index(\"$IMAGE_NAME\")" /tmp/flatpaks.json >/dev/null && exit 0
 
-mkdir -p /usr/etc/flatpak/remotes.d
-curl -sSL https://dl.flathub.org/repo/flathub.flatpakrepo -o /usr/etc/flatpak/remotes.d/flathub.flatpakrepo
+mkdir -p /etc/flatpak/remotes.d
+curl -sSL https://dl.flathub.org/repo/flathub.flatpakrepo -o /etc/flatpak/remotes.d/flathub.flatpakrepo
 
 INSTALL_FILE_DIR="/usr/share/ublue-os/flatpak"
 INSTALL_FILE="$INSTALL_FILE_DIR/install"
