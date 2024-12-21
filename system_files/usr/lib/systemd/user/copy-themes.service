@@ -1,0 +1,9 @@
+[Unit]
+Description=Copy system themes to ~/.themes
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/copy-themes
+
+[Install]
+WantedBy=default.target

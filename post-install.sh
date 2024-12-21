@@ -6,6 +6,8 @@ systemctl enable sshd.service
 systemctl enable tailscaled.service
 systemctl enable libvirtd.service 2>/dev/null || true
 
+systemctl --global enable copy-themes.service
+
 # let bazzite-deck continue to use its tweaked update system,
 # everything else use rpm-ostreed-automatic/flatpak-system-update
 if [[ $FULL_IMAGE_NAME = 'bazzite-deck' ]]; then

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # SCRIPT VERSION
-VER=5
+VER=6
 IMAGE_NAME=$(cat /usr/share/ublue-os/image-name)
 FULL_VER="$VER-$IMAGE_NAME"
 
@@ -36,11 +36,6 @@ REMOVE_LIST_FILE="/usr/share/ublue-os/flatpak/remove"
 flatpak override \
   --filesystem=xdg-config/gtk-4.0:ro \
   --filesystem=xdg-config/gtk-3.0:ro
-
-# app-specific theme fixes
-flatpak override \
-  --env=GTK_THEME=Breeze \
-  org.kicad.KiCad
 
 # XInput for Firefox
 flatpak override \
