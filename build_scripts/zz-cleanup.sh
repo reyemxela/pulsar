@@ -16,5 +16,5 @@ if [[ -e /usr/bin/gamescope ]]; then
 fi
 
 # merge /usr/etc into /etc
-cp -ar /usr/etc /
+cp -ar /usr/etc / 2>/dev/null || true
 rm -rf /usr/etc

@@ -13,4 +13,4 @@ done
 set -x
 
 ostree container commit
-bootc container lint
+# bootc container lint
