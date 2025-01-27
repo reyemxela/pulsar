@@ -24,6 +24,10 @@ env:
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
   BASE_IMAGE_REGISTRY: "ghcr.io/ublue-os"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   push-ghcr:
     name: Build and push image
@@ -88,7 +92,7 @@ jobs:
 
       - name: Remove auxiliary images
         run: |
-          sudo podman rmi ${{ env.BASE_IMAGE }}
+          sudo podman rmi --all
 
       # - name: Check Secureboot
       #   shell: bash
