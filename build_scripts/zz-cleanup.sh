@@ -14,3 +14,7 @@ fi
 if [[ -e /usr/bin/gamescope ]]; then
   setcap cap_sys_nice=eip /usr/bin/gamescope
 fi
+
+# merge /usr/etc into /etc
+cp -ar /usr/etc /
+rm -rf /usr/etc
