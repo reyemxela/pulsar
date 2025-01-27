@@ -233,7 +233,7 @@ load-image $flavor=image_flavor $tag=default_tag $version=major_version:
     OUT_NAME="${target_image}_${tag}"
 
     IMAGE=$(${PODMAN} pull oci:${PWD}/$OUT_NAME)
-    DATE_VERSION=$(${PODMAN} inspect $IMAGE | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
+    ${PODMAN} tag ${IMAGE} localhost/${target_image}:${tag}
     for t in $(just get-tags $flavor $tag $version); do
         ${PODMAN} tag ${IMAGE} localhost/${target_image}:${t}
     done
@@ -246,8 +246,7 @@ get-tags $flavor=image_flavor $tag=default_tag $version=major_version:
     
     target_image="$(just get-image-name ${flavor})"
 
-    DATE_VERSION=$(${PODMAN} inspect $target_image | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
-    echo "${tag} ${version} ${DATE_VERSION}"
+    echo "${tag} ${version}"
 
 [private]
 rootful-load-image $flavor=image_flavor $repo='localhost' $tag=default_tag:
