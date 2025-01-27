@@ -1,0 +1,8 @@
+[[customizations.filesystem]]
+mountpoint = "/"
+minsize = "20 GiB"
+
+[[customizations.user]]
+name = "pulsar"
+password = "pulsar"
+groups = ["wheel"]

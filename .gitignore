@@ -1,2 +1,3 @@
 cosign.key
-deploy.iso*
+output/
+_build_*

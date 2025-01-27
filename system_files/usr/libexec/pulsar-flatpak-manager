@@ -2,10 +2,11 @@
 
 # SCRIPT VERSION
 VER=6
-IMAGE_NAME=$(cat /usr/share/ublue-os/image-name)
-FULL_VER="$VER-$IMAGE_NAME"
+IMAGE_NAME=$(jq -r '."image-name"' /usr/share/pulsar/image-info.json)
+IMAGE_FLAVOR=$(jq -r '."image-flavor"' /usr/share/pulsar/image-info.json)
+FULL_VER="$VER-$IMAGE_NAME-$IMAGE_FLAVOR"
 
-VER_FILE="/etc/ublue-os/flatpak-setup-version"
+VER_FILE="/etc/pulsar/flatpak-setup-version"
 VER_RAN=$(cat $VER_FILE)
 
 # Run script if updated
@@ -29,8 +30,7 @@ flatpak remote-modify --system --enable flathub
 FLATPAK_LIST=$(flatpak list --columns=application)
 
 # Flatpak list files
-INSTALL_LIST_FILE="/usr/share/ublue-os/flatpak/install"
-REMOVE_LIST_FILE="/usr/share/ublue-os/flatpak/remove"
+INSTALL_LIST_FILE="/usr/share/pulsar/flatpak/install"
 
 # Flatpak theming
 flatpak override \
@@ -56,7 +56,7 @@ flatpak override \
   --filesystem=xdg-config/vkBasalt:ro
 
 # Params needed for HW accelerated video on Nvidia (Ignoring hybrid systems)
-if [[ $IMAGE_NAME =~ "nvidia" ]] && [ $(grep -o "\-display" <<< $(lshw -C display) | wc -l) -le 1 ] && grep -q "vendor: NVIDIA Corporation" <<< $(lshw -C display); then
+if [[ $IMAGE_FLAVOR =~ "nvidia" ]] && [ $(grep -o "\-display" <<< $(lshw -C display) | wc -l) -le 1 ] && grep -q "vendor: NVIDIA Corporation" <<< $(lshw -C display); then
   flatpak override \
     --system \
     --filesystem=host-os \
@@ -96,13 +96,5 @@ if [[ -f $INSTALL_LIST_FILE ]]; then
   fi
 fi
 
-# Remove flatpaks in list once
-if [[ ! -f $VER_FILE && -f $REMOVE_LIST_FILE ]]; then
-  REMOVE_LIST=$(echo $FLATPAK_LIST | grep -f - $REMOVE_LIST_FILE)
-  if [[ -n $REMOVE_LIST ]]; then
-    flatpak remove --system --noninteractive ${REMOVE_LIST[@]}
-  fi
-fi
-
-mkdir -p /etc/ublue-os
+mkdir -p /etc/pulsar
 echo $FULL_VER > $VER_FILE

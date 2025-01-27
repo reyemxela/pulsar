@@ -1,12 +1,14 @@
-# ublue-custom
-[![build-ublue-custom](https://github.com/reyemxela/ublue-custom/actions/workflows/build.yml/badge.svg)](https://github.com/reyemxela/ublue-custom/actions/workflows/build.yml)
+![Pulsar logo](logo.svg)
 
-My own custom [ublue](https://github.com/ublue-os/)-based Fedora immutable images, with a few little tweaks and extra packages thrown in.
+# Pulsar
+[![build-pulsar](https://github.com/reyemxela/pulsar/actions/workflows/build.yml/badge.svg)](https://github.com/reyemxela/pulsar/actions/workflows/build.yml)
+
+My own custom [ublue](https://github.com/ublue-os/)-based Fedora atomic images, with a few little tweaks and extra packages thrown in. I also wanted to try my hand at unifying and branding the various base images to create a single consistent experience.
 
 ## Features
 
 ### Flatpaks
-On graphical images, a flatpak installer helper (`ublue-flatpak-manager.service`) is installed and enabled. The script removes any default fedora repos and sets up flathub, as well as installing any specified apps.
+On graphical images, a flatpak installer helper (`pulsar-flatpak-manager.service`) is installed and enabled. The script removes any default fedora repos and sets up flathub, as well as installing any specified apps.
 
 ### Applications
 Along with some handy CLI tools, there are a few GUI applications layered as well. Whenever possible, flatpaks are preferred for GUI apps. However some things don't work well (or at all) as flatpaks, so those are layered.

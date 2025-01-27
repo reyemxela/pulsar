@@ -11,7 +11,7 @@ configure-mangohud:
   #!/usr/bin/bash
   set -euo pipefail
   mkdir -p ~/.config ~/.local/share/applications
-  cp -R /usr/share/ublue-os/mangohud-config/MangoHud ~/.config
+  cp -R /usr/share/pulsar/mangohud-config/MangoHud ~/.config
   sed 's!^Exec=\(/usr/bin/bazzite-steam.*\)!Exec=/usr/bin/mangohud \1!' /usr/share/applications/steam.desktop >~/.local/share/applications/steam.desktop
   update-desktop-database
   echo "Relaunch Steam to apply changes"

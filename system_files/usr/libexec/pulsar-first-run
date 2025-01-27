@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+restorecon -rv /var/{lib,log}/libvirt
+
+systemctl disable pulsar-first-run.serviced

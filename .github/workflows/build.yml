@@ -1,4 +1,4 @@
-name: build-ublue-custom
+name: Build Pulsar
 on:
   pull_request:
     branches:
@@ -36,196 +36,78 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_name: [base, kinoite, bazzite]
-        image_suffix: [main]
+        image_flavor: [main, deck, cli, cli-nvidia]
         major_version: [41]
-        include:
-          - image_name: base
-            image_suffix: nvidia
-            major_version: 41
-          - image_name: bazzite
-            image_suffix: deck
-            major_version: 41
           
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Install Just
+        uses: ./.github/actions/install-just
+        
       - name: Matrix Variables
         shell: bash
         run: |
-          if [[ "${{ matrix.image_name }}" == "bazzite" && "${{ matrix.image_suffix }}" == "main" ]]; then
-            IMAGE_SUFFIX=
-          else
-            IMAGE_SUFFIX=${{ matrix.image_suffix }}
-          fi
-          echo "IMAGE_NAME=${{ matrix.image_name }}" >> $GITHUB_ENV
-          echo "IMAGE_SUFFIX=${IMAGE_SUFFIX}" >> $GITHUB_ENV
-          echo "FULL_IMAGE_NAME=${{ matrix.image_name }}${IMAGE_SUFFIX:+-$IMAGE_SUFFIX}" >> $GITHUB_ENV
-          echo "FEDORA_MAJOR_VERSION=${{ matrix.major_version }}" >> $GITHUB_ENV
+          IMAGE_FLAVOR="${{ matrix.image_flavor }}"
+          IMAGE_NAME="$(just get-image-name $IMAGE_FLAVOR)"
+          MAJOR_VERSION="${{ matrix.major_version }}"
+          BASE_IMAGE="$(just get-base-image $IMAGE_FLAVOR)"
+          FRESH_RECHUNK="${{ github.event.inputs.fresh-rechunk }}"
+
+          echo "IMAGE_FLAVOR=${IMAGE_FLAVOR}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
+          echo "MAJOR_VERSION=${MAJOR_VERSION}" >> $GITHUB_ENV
+          echo "BASE_IMAGE=${BASE_IMAGE}" >> $GITHUB_ENV
+          echo "FRESH_RECHUNK=${FRESH_RECHUNK}" >> $GITHUB_ENV
           
       - name: Maximize build space
-        uses: ublue-os/remove-unwanted-software@v7
-        
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Pull main, rechunk images
-        uses: Wandalen/wretry.action@v3.5.0
-        with:
-          attempt_limit: 3
-          attempt_delay: 15000
-          command: |
-            # pull the base images used for FROM in Containerfile so
-            # we can retry on that unfortunately common failure case
-            sudo podman pull ${{ env.BASE_IMAGE_REGISTRY }}/${{ env.FULL_IMAGE_NAME }}:${{ env.FEDORA_MAJOR_VERSION }}
-
-            # Add rechunk as well to remove this source of failure
-            sudo podman pull ghcr.io/hhd-dev/rechunk:v0.8.3
-
-      - name: Get source versions
-        id: labels
-        uses: Wandalen/wretry.action@v3.5.0
-        with:
-          attempt_limit: 3
-          attempt_delay: 15000
-          command: |
-            set -eo pipefail
-            sudo skopeo inspect containers-storage:${{ env.BASE_IMAGE_REGISTRY }}/${{ env.FULL_IMAGE_NAME }}:${{ env.FEDORA_MAJOR_VERSION }} > source.json
-            ver=$(jq -r '.Labels["org.opencontainers.image.version"]' source.json)
-            if [ -z "$ver" ] || [ "null" = "$ver" ]; then
-              echo "inspected image version must not be empty or null"
-              exit 1
-            fi
-            kver=$(jq -r '.Labels["ostree.linux"]' source.json)
-            if [ -z "$kver" ] || [ "null" = "$kver" ]; then
-              echo "inspected image kernel version must not be empty or null"
-              exit 1
-            fi
-            echo "SOURCE_IMAGE_VERSION=$ver" >> $GITHUB_ENV
-            echo "KERNEL_VERSION=$kver" >> $GITHUB_ENV
-
-      # Build image using buildah and save it to raw-img
+        uses: ublue-os/remove-unwanted-software@v8
+      
       - name: Build Image
-        id: build_image
+        shell: bash
         run: |
-          sudo buildah build \
-            --build-arg IMAGE_NAME=${{ env.IMAGE_NAME }} \
-            --build-arg IMAGE_SUFFIX=${{ env.IMAGE_SUFFIX }} \
-            --build-arg FEDORA_MAJOR_VERSION=${{ env.FEDORA_MAJOR_VERSION }} \
-            --tag raw-img .
+          sudo just build ${{ env.IMAGE_FLAVOR }}
+
+      - name: Rechunk Image
+        shell: bash
+        run: |
+          sudo just rechunk ${{ env.IMAGE_FLAVOR }} ${{ env.FRESH_RECHUNK }}
+
+      - name: Load and Tag Image
+        shell: bash
+        run: |
+          just load-image ${{ env.IMAGE_FLAVOR }}
+
+      - name: Get Tags
+        id: get_tags
+        shell: bash
+        run: |
+          tags=$(just get-tags ${{ env.IMAGE_FLAVOR }})
+          echo "tags=$tags" >> $GITHUB_OUTPUT
 
       - name: Remove auxiliary images
-        # We are tight on space, need at least 2x for OSTree
         run: |
-          sudo podman image rm ${{ env.BASE_IMAGE_REGISTRY }}/${{ env.FULL_IMAGE_NAME }}:${{ env.FEDORA_MAJOR_VERSION }}
+          sudo podman rmi ${{ env.BASE_IMAGE }}
 
-      # Generate the previous image reference used by the Rechunker
-      - name: Generate previous reference
-        id: generate-prev-ref
-        shell: bash
-        run: |
-          if [ "${{ github.event.inputs.fresh-rechunk }}" == "true" ]; then
-            IMAGEREF=""
-          else
-            IMAGEREF="${{ env.IMAGE_REGISTRY }}/${{ env.FULL_IMAGE_NAME }}:latest"
-          fi
-
-          echo "ref=${IMAGEREF}" >> $GITHUB_OUTPUT
-
-          echo "Generated the following:"
-          cat $GITHUB_OUTPUT
-
-      # Reprocess raw-img using rechunker which will delete it
-      - name: Run Rechunker
-        id: rechunk
-        uses: hhd-dev/rechunk@v0.8.6
-        with:
-          rechunk: 'ghcr.io/hhd-dev/rechunk:v0.8.6'
-          ref: 'raw-img'
-          prev-ref: '${{ steps.generate-prev-ref.outputs.ref }}'
-          version: '${{ env.SOURCE_IMAGE_VERSION }}'
-          labels: |
-            org.opencontainers.image.created=<timestamp>
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.description=Customized ${{ env.FULL_IMAGE_NAME }}
-            org.universal-blue.pkg.kernel=<relver:kernel>
-
-      # Generate tags after rechunker runs and checks the primary tag is not duplicated
-      # If it is, rechunk will suffix it by .1, .2, etc and put it in steps.rechunk.outputs.version
-      - name: Generate tags
-        id: generate-tags
-        shell: bash
-        run: |
-          # Generate a timestamp for creating an image version history
-          TIMESTAMP="$(date +%Y%m%d)"
-          VERSION_TAG="${{ steps.rechunk.outputs.version }}"
-          VERSION="${{ env.FEDORA_MAJOR_VERSION }}"
-
-          COMMIT_TAGS=()
-          BUILD_TAGS=( "${VERSION_TAG}" )
-
-          # Have tags for tracking builds during pull request
-          SHA_SHORT="${GITHUB_SHA::7}"
-          COMMIT_TAGS+=("pr-${{ github.event.number }}-${VERSION}")
-          COMMIT_TAGS+=("${SHA_SHORT}-${VERSION}")
-
-          BUILD_TAGS=("${VERSION}")
-
-          # Append matching timestamp tags to keep a version history
-          for TAG in "${BUILD_TAGS[@]}"; do
-              BUILD_TAGS+=("${TAG}-${TIMESTAMP}")
-          done
-
-          BUILD_TAGS+=("${TIMESTAMP}")
-          BUILD_TAGS+=("latest")
-
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-              echo "Generated the following commit tags: "
-              for TAG in "${COMMIT_TAGS[@]}"; do
-                  echo "${TAG}"
-              done
-
-              alias_tags=("${COMMIT_TAGS[@]}")
-          else
-              alias_tags=("${BUILD_TAGS[@]}")
-          fi
-
-          echo "Generated the following build tags: "
-          for TAG in "${BUILD_TAGS[@]}"; do
-              echo "${TAG}"
-          done
-
-          echo "alias_tags=${alias_tags[*]}" >> $GITHUB_OUTPUT
-
-      # Pull oci-dir image, remove oci dir to make space, and then tag appropriately
-      - name: Load in podman and tag
-        run: |
-          IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
-          sudo rm -rf ${{ steps.rechunk.outputs.output }}
-          for tag in ${{ steps.generate-tags.outputs.alias_tags }}; do
-            podman tag $IMAGE ${{ env.FULL_IMAGE_NAME }}:$tag
-          done
-          # keep for secureboot check
-          podman tag $IMAGE rechunked-img
-
-      - name: Check Secureboot
-        shell: bash
-        run: |
-          set -x
-          if [[ ! $(command -v sbverify) || ! $(command -v curl) || ! $(command -v openssl) ]]; then
-            sudo apt update
-            sudo apt install sbsigntool curl openssl
-          fi
-          TMP=$(podman create rechunked-img bash)
-          podman cp "$TMP:/usr/lib/modules/${{ env.KERNEL_VERSION }}/vmlinuz" .
-          podman rm $TMP
-          sbverify --list vmlinuz
-          curl --retry 3 -Lo kernel-sign.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key.der
-          curl --retry 3 -Lo akmods.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key_2.der
-          openssl x509 -in kernel-sign.der -out kernel-sign.crt
-          openssl x509 -in akmods.der -out akmods.crt
-          sbverify --cert kernel-sign.crt vmlinuz || exit 1
-          sbverify --cert akmods.crt vmlinuz || exit 1
+      # - name: Check Secureboot
+      #   shell: bash
+      #   run: |
+      #     set -x
+      #     if [[ ! $(command -v sbverify) || ! $(command -v curl) || ! $(command -v openssl) ]]; then
+      #       sudo apt update
+      #       sudo apt install sbsigntool curl openssl
+      #     fi
+      #     TMP=$(podman create rechunked-img bash)
+      #     podman cp "$TMP:/usr/lib/modules/${{ env.KERNEL_VERSION }}/vmlinuz" .
+      #     podman rm $TMP
+      #     sbverify --list vmlinuz
+      #     curl --retry 3 -Lo kernel-sign.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key.der
+      #     curl --retry 3 -Lo akmods.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key_2.der
+      #     openssl x509 -in kernel-sign.der -out kernel-sign.crt
+      #     openssl x509 -in akmods.der -out akmods.crt
+      #     sbverify --cert kernel-sign.crt vmlinuz || exit 1
+      #     sbverify --cert akmods.crt vmlinuz || exit 1
   
       # Workaround bug where capital letters in your GitHub username make it impossible to push to GHCR.
       # https://github.com/macbre/push-to-ghcr/issues/12
@@ -247,8 +129,8 @@ jobs:
           attempt_limit: 3
           attempt_delay: 15000
           with: |
-            image: ${{ env.FULL_IMAGE_NAME }}
-            tags: ${{ steps.generate-tags.outputs.alias_tags }}
+            image: ${{ env.IMAGE_NAME }}
+            tags: ${{ steps.get_tags.outputs.tags }}
             registry: ${{ steps.registry_case.outputs.lowercase }}
             username: ${{ env.REGISTRY_USER }}
             password: ${{ env.REGISTRY_PASSWORD }}
@@ -258,7 +140,7 @@ jobs:
         if: github.event_name != 'pull_request'
         with:
           registry: ${{ env.IMAGE_REGISTRY }}
-          containers: ${{ env.FULL_IMAGE_NAME }}
+          containers: ${{ env.IMAGE_NAME }}
           registry-token: ${{ secrets.GITHUB_TOKEN }}
           signing-secret: ${{ secrets.SIGNING_SECRET }}
           tags: ${{ steps.push.outputs.outputs && fromJSON(steps.push.outputs.outputs).digest }}
