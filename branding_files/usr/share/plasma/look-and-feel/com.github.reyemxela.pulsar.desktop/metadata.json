@@ -1,0 +1,23 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "",
+                "Name": "Alex Meyer"
+            }
+        ],
+        "Category": "",
+        "Description": "Pulsar theme",
+        "Id": "com.github.reyemxela.pulsar.desktop",
+        "License": "GPLv2+",
+        "Name": "Pulsar",
+        "ServiceTypes": [
+            "Plasma/LookAndFeel"
+        ],
+        "Version": "0.01",
+        "Website": "https://github.com/reyemxela/pulsar"
+    },
+    "X-KDE-ParentApp": "",
+    "X-Plasma-MainScript": "defaults"
+}
