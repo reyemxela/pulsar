@@ -1,7 +1,5 @@
 [Unit]
-Description=Manage system flatpaks
-Wants=network-online.target
-After=network-online.target
+Description=First-run tasks
 
 [Service]
 Type=oneshot
@@ -11,4 +9,4 @@ RestartSec=30
 StartLimitInterval=0
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

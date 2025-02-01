@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "Fixing libvirt labels..."
 restorecon -rv /var/{lib,log}/libvirt
 
-systemctl disable pulsar-first-run.serviced
+echo "Disabling first-run service..."
+systemctl disable pulsar-first-run.service
