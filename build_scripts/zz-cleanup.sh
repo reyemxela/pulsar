@@ -5,6 +5,7 @@ set -ouex pipefail
 # clean up autostarts
 rm -f /etc/skel/.config/autostart/steam.desktop
 rm -f /etc/profile.d/ublue-firstboot.sh
+rm -f /etc/profile.d/user-motd.sh
 
 # rechunk quirks
 if [[ -e /usr/bin/sunshine ]]; then

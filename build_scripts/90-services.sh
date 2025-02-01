@@ -3,6 +3,7 @@
 set -ouex pipefail
 
 # disables
+systemctl disable flatpak-add-fedora-repos.service || true
 systemctl disable bazzite-flatpak-manager.service || true
 systemctl disable ublue-flatpak-manager.service || true
 systemctl disable ublue-update.service || true
