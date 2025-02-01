@@ -24,5 +24,5 @@ fi
 # updates
 if [[ $IMAGE_FLAVOR != "deck" ]]; then
   # let deck behave normally, everything else gets auto updates
-  systemctl enable bootc-fetch-apply-updates.timer
+  systemctl enable uupd.timer
 fi

@@ -3,6 +3,7 @@
 set -ouex pipefail
 
 dnf5 -y copr enable errornointernet/mergerfs
+dnf5 -y copr enable ublue-os/staging
 
 shared=(
   "bat"
@@ -53,4 +54,8 @@ elif [[ $IMAGE_FLAVOR = "deck" ]]; then
   dnf5 -y install ${gui[@]}
 elif [[ $IMAGE_FLAVOR = "cli" ]]; then
   dnf5 -y install ${server[@]} ${virt[@]}
+fi
+
+if [[ $IMAGE_FLAVOR != "deck" ]]; then
+  dnf5 -y swap ublue-update uupd
 fi
