@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-if [[ ! -d /usr/share/plasma ]]; then # only run on KDE images
+if [[ ! -e /usr/bin/plasmashell ]]; then # only run on KDE images
   exit
 fi
 
