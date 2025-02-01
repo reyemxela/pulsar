@@ -1,0 +1,6 @@
+[Keyboard]
+RepeatDelay=300
+RepeatRate=50
+
+[Libinput][Defaults]
+PointerAccelerationProfile=1

@@ -1,0 +1,6 @@
+[Desktops]
+Number=4
+Rows=1
+
+[Plugins]
+switch-to-previous-desktopEnabled=true
