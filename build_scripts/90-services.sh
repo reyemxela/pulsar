@@ -3,10 +3,12 @@
 set -ouex pipefail
 
 # disables
-systemctl disable flatpak-add-fedora-repos.service || true
-systemctl disable bazzite-flatpak-manager.service || true
-systemctl disable ublue-flatpak-manager.service || true
-systemctl disable ublue-update.service || true
+systemctl mask flatpak-add-fedora-repos.service || true
+systemctl mask bazzite-flatpak-manager.service || true
+systemctl mask ublue-flatpak-manager.service || true
+systemctl mask flatpak-system-update.timer || true
+systemctl mask rpm-ostreed-automatic.timer || true
+systemctl mask ublue-update.service || true
 
 # enables
 systemctl enable sshd.service
