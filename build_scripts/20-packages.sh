@@ -2,7 +2,6 @@
 
 set -ouex pipefail
 
-dnf5 -y copr enable errornointernet/mergerfs
 dnf5 -y copr enable ublue-os/staging
 
 shared=(
@@ -31,7 +30,7 @@ virt=(
 )
 
 server=(
-  "mergerfs"
+  "https://github.com/trapexit/mergerfs/releases/download/2.40.2/mergerfs-2.40.2-1.fc41.x86_64.rpm"
   "snapraid"
 )
 
@@ -52,7 +51,7 @@ if [[ $IMAGE_FLAVOR = "main" ]]; then
   dnf5 -y install ${virt[@]} ${gui[@]}
 elif [[ $IMAGE_FLAVOR = "deck" ]]; then
   dnf5 -y install ${gui[@]}
-elif [[ $IMAGE_FLAVOR = "cli" ]]; then
+elif [[ $IMAGE_FLAVOR =~ "cli" ]]; then
   dnf5 -y install ${server[@]} ${virt[@]}
 fi
 
