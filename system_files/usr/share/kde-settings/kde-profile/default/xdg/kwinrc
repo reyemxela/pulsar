@@ -2,5 +2,11 @@
 Number=4
 Rows=1
 
+[Effect-overview]
+BorderActivate=9
+
 [Plugins]
 switch-to-previous-desktopEnabled=true
+
+[Wayland]
+EnablePrimarySelection=false
