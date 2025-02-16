@@ -15,7 +15,9 @@ mkdir -p output
 
 rm -f output/deploy.iso*
 
-sudo just build
+if [[ ${1-} != "--skipbuild" ]]; then
+  sudo just build
+fi
 
 sudo podman run --rm --privileged \
   --volume isocache:/cache \
