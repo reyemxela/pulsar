@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_flavor: [main, deck, cli, cli-nvidia]
+        image_flavor: [main, main-nvidia, deck, cli, cli-nvidia]
         major_version: [41]
           
     steps:

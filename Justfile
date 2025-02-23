@@ -13,6 +13,7 @@ alias run-vm := run-vm-qcow2
 
 base_images := '(
     [main]="bazzite"
+    [main-nvidia]="bazzite-nvidia"
     [deck]="bazzite-deck"
     [cli]="base-main"
     [cli-nvidia]="base-nvidia"
