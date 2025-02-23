@@ -5,7 +5,7 @@ set -ouex pipefail
 mkdir -p /usr/share/pulsar
 
 IMAGE_NAME="pulsar-${IMAGE_FLAVOR}"
-IMAGE_NAME="${IMAGE_NAME/%-main/}"
+IMAGE_NAME="${IMAGE_NAME/-main/}"
 
 IMAGE_PRETTY_NAME="Pulsar"
 IMAGE_LIKE="fedora"

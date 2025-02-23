@@ -4,9 +4,9 @@ set -ouex pipefail
 
 # kde about dialog
 case $IMAGE_FLAVOR in
-  main)
+  main*)
     VARIANT="Desktop" ;;
-  deck)
+  deck*)
     VARIANT="Handheld" ;;
   cli*)
     VARIANT="Server" ;;

@@ -47,14 +47,14 @@ gui=(
 
 dnf5 -y install ${shared[@]}
 
-if [[ $IMAGE_FLAVOR = "main" ]]; then
+if [[ $IMAGE_FLAVOR =~ "main" ]]; then
   dnf5 -y install ${virt[@]} ${gui[@]}
-elif [[ $IMAGE_FLAVOR = "deck" ]]; then
+elif [[ $IMAGE_FLAVOR =~ "deck" ]]; then
   dnf5 -y install ${gui[@]}
 elif [[ $IMAGE_FLAVOR =~ "cli" ]]; then
   dnf5 -y install ${server[@]} ${virt[@]}
 fi
 
-if [[ $IMAGE_FLAVOR != "deck" ]]; then
+if [[ ! $IMAGE_FLAVOR =~ "deck" ]]; then
   dnf5 -y swap ublue-update uupd
 fi

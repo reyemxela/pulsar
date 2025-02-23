@@ -67,7 +67,7 @@ sudo-clean:
 get-image-name $flavor=image_flavor:
     #!/usr/bin/env bash
     IMAGE_NAME="pulsar-${flavor}"
-    echo "${IMAGE_NAME/%-main/}"
+    echo "${IMAGE_NAME/-main/}"
 
 [group('Utility')]
 [private]
