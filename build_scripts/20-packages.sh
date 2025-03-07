@@ -56,5 +56,6 @@ elif [[ $IMAGE_FLAVOR =~ "cli" ]]; then
 fi
 
 if [[ ! $IMAGE_FLAVOR =~ "deck" ]]; then
-  dnf5 -y swap ublue-update uupd
+  dnf5 -y remove ublue-update
+  dnf5 -y install uupd
 fi
