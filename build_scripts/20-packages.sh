@@ -17,7 +17,6 @@ shared=(
   "nmap"
   "osbuild-selinux"
   "picocom"
-  "samba"
   "strace"
   "tailscale"
   "zsh"
