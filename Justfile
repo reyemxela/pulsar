@@ -242,7 +242,7 @@ rechunk $flavor=image_flavor $fresh='false' $tag=default_tag:
         --volume cache_ostree:/var/ostree \
         --env REPO=/var/ostree/repo \
         --env PREV_REF=$PREV_REF \
-        --env LABELS="$(just get-labels $flavor)" \
+        --env LABELS="'$(just get-labels $flavor)'" \
         --env OUT_NAME="$OUT_NAME" \
         --env VERSION="$VERSION" \
         --env VERSION_FN=/workspace/version.txt \
