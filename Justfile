@@ -1,6 +1,6 @@
 export repo_organization := env("GITHUB_REPOSITORY_OWNER", "reyemxela")
 export image_flavor := env("IMAGE_FLAVOR", "main")
-export major_version := env("MAJOR_VERSION", "41")
+export major_version := env("MAJOR_VERSION", "42")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
 

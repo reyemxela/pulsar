@@ -24,7 +24,7 @@ EOF
 
 # logo branding
 find /usr/share/pixmaps \( -name 'fedora*.png' -o -name 'fedora*.svg' \) -exec rm -f '{}' \;
-cp -Prf /tmp/branding_files/. /
+cp -Prf /ctx/branding_files/. /
 
 # deck start/suspend videos
 # TODO: make my own?

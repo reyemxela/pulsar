@@ -11,14 +11,15 @@ shared=(
   "entr"
   "etckeeper"
   "evtest"
-  "eza"
   "gh"
   "netcat"
   "nmap"
   "osbuild-selinux"
   "picocom"
+  "shellcheck"
   "strace"
   "tailscale"
+  "uupd"
   "zsh"
 )
 
@@ -52,8 +53,4 @@ elif [[ $IMAGE_FLAVOR =~ "deck" ]]; then
   dnf5 -y install ${gui[@]}
 elif [[ $IMAGE_FLAVOR =~ "cli" ]]; then
   dnf5 -y install ${server[@]} ${virt[@]}
-fi
-
-if [[ ! $IMAGE_FLAVOR =~ "deck" ]]; then
-  dnf5 -y swap ublue-update uupd
 fi
