@@ -280,7 +280,7 @@ _load_image $flavor=image_flavor $tag=default_tag:
         podman tag ${IMAGE} localhost/${target_image}:${t}
     done
     podman images
-    rm -rf $OUT_NAME
+    just sudoif rm -rf $OUT_NAME
 
 get-tags $flavor=image_flavor $tag=default_tag:
     #!/usr/bin/env bash
