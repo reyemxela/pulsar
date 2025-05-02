@@ -81,7 +81,7 @@ jobs:
       - name: Load and Tag Image
         shell: bash
         run: |
-          just load-image ${{ env.IMAGE_FLAVOR }}
+          just _load_image ${{ env.IMAGE_FLAVOR }}
 
       - name: Get Tags
         id: get_tags
