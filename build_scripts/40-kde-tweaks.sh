@@ -59,6 +59,9 @@ if [[ -e /usr/bin/alacritty ]]; then
   ln -s /usr/share/applications/Alacritty-distrobox.desktop /usr/share/kglobalaccel/Alacritty-distrobox.desktop
 fi
 
+rm -f /usr/share/backgrounds/default{,-dark}.jxl
+rm -f /usr/share/backgrounds/default.xml
+
 ln -sf /usr/share/wallpapers/Pulsar.jpg /usr/share/backgrounds/default.png
 ln -sf /usr/share/wallpapers/Pulsar.jpg /usr/share/backgrounds/default-dark.png
 
