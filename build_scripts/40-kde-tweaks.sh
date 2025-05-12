@@ -62,8 +62,8 @@ fi
 rm -f /usr/share/backgrounds/default{,-dark}.jxl
 rm -f /usr/share/backgrounds/default.xml
 
-ln -sf /usr/share/wallpapers/Pulsar.jpg /usr/share/backgrounds/default.png
-ln -sf /usr/share/wallpapers/Pulsar.jpg /usr/share/backgrounds/default-dark.png
+ln -sf /usr/share/wallpapers/Pulsar.jpg /usr/share/backgrounds/default.jxl
+ln -sf /usr/share/wallpapers/Pulsar.jpg /usr/share/backgrounds/default-dark.jxl
 
 # taskbar icons
 sed -i '/<entry name="launchers" type="StringList">/,/<\/entry>/ s!<default>[^<]*</default>!<default>preferred://browser,preferred://filemanager,applications:systemsettings.desktop,applications:Alacritty-distrobox.desktop,applications:Alacritty.desktop,applications:code.desktop,applications:org.kde.discover.desktop,applications:steam.desktop</default>!' /usr/share/plasma/plasmoids/org.kde.plasma.taskmanager/contents/config/main.xml
