@@ -7,6 +7,8 @@ dnf5 -y copr enable ublue-os/packages
 shared=(
   "bat"
   "btop"
+  "docker-cli"
+  "docker-compose-switch"
   "dua-cli"
   "entr"
   "etckeeper"
@@ -18,6 +20,7 @@ shared=(
   "p7zip"
   "p7zip-plugins"
   "picocom"
+  "podman-compose"
   "rar"
   "shellcheck"
   "strace"
