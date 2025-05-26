@@ -7,8 +7,9 @@ dnf5 -y copr enable ublue-os/packages
 shared=(
   "bat"
   "btop"
-  "docker-cli"
-  "docker-compose-switch"
+  "docker-ce"
+  "docker-ce-cli"
+  "docker-compose-plugin"
   "dua-cli"
   "entr"
   "etckeeper"
