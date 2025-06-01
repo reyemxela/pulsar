@@ -18,6 +18,7 @@ tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
 mv /tmp/rpms/* /tmp/akmods-rpms/
 find /tmp/akmods-rpms
 
+sed -i '0,/enabled=0/{s/enabled=0/enabled=1/}' /etc/yum.repos.d/negativo17-fedora-multimedia.repo
 
 curl -Lo /tmp/nvidia-install.sh https://raw.githubusercontent.com/ublue-os/main/main/build_files/nvidia-install.sh
 chmod +x /tmp/nvidia-install.sh
