@@ -6,6 +6,8 @@ fi
 
 set -ouex pipefail
 
+# fix kpackagetool6 breaking if the scripts folder doesn't exist
+mkdir -p /usr/share/kwin/scripts
 
 # adapta KDE theme
 TMPFILE="$(mktemp)"
