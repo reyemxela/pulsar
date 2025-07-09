@@ -1,19 +1,20 @@
 export repo_organization := env("GITHUB_REPOSITORY_OWNER", "reyemxela")
-export image_flavor := env("IMAGE_FLAVOR", "main")
+export image_name := env("IMAGE_NAME", "pulsar-main") # output image name, usually same as repo name, change as needed
 export major_version := env("MAJOR_VERSION", "42")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
+
 
 alias build-vm := build-qcow2
 alias rebuild-vm := rebuild-qcow2
 alias run-vm := run-vm-qcow2
 
 base_images := '(
-    [main]="bazzite"
-    [main-nvidia]="bazzite"
-    [deck]="bazzite-deck"
-    [cli]="base-main"
-    [cli-nvidia]="base-main"
+    [pulsar-main]="bazzite"
+    [pulsar-main-nvidia]="bazzite"
+    [pulsar-deck]="bazzite-deck"
+    [pulsar-cli]="base-main"
+    [pulsar-cli-nvidia]="base-main"
 )'
 
 [private]
@@ -52,7 +53,7 @@ clean:
     rm -f previous.manifest.json
     rm -f changelog.md
     rm -f output.env
-    rm -rf output/
+    rm -f output/
 
 # Sudo Clean Repo
 [group('Utility')]
@@ -80,34 +81,33 @@ sudoif command *args:
 
 [group('Utility')]
 [private]
-get-image-name $flavor=image_flavor:
+get-image-name $target_image=image_name:
     #!/usr/bin/env bash
-    IMAGE_NAME="pulsar-${flavor}"
-    echo "${IMAGE_NAME/-main/}"
+    echo "${target_image/-main/}"
 
 [group('Utility')]
 [private]
-get-base-image $flavor=image_flavor:
+get-base-image $target_image=image_name:
     #!/usr/bin/env bash
     set -euo pipefail
 
     declare -A base_images={{ base_images }}
-    echo "${base_images[$flavor]}"
+    echo "${base_images[$target_image]}"
 
 [group('Utility')]
 [private]
-get-labels $flavor=image_flavor:
+get-labels $target_image=image_name:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    target_image="$(just get-image-name ${flavor})"
+    image_name="$(just get-image-name ${target_image})"
 
     echo "\
     org.opencontainers.image.created=$(date -u +%Y\-%m\-%d\T%H\:%M\:%S\Z)
     org.opencontainers.image.description=Customized Universal Blue images with some extras
     org.opencontainers.image.documentation=https://github.com/${repo_organization}/pulsar
     org.opencontainers.image.source=https://github.com/${repo_organization}/pulsar/blob/main/Containerfile
-    org.opencontainers.image.title=${target_image}
+    org.opencontainers.image.title=${image_name}
     org.opencontainers.image.url=https://github.com/${repo_organization}/pulsar
     org.opencontainers.image.vendor=${repo_organization}
     io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${repo_organization}/pulsar/refs/heads/main/README.md
@@ -118,46 +118,42 @@ get-labels $flavor=image_flavor:
     containers.bootc=1
     "
 
+[group('Utility')]
+[private]
+get-tags $target_image=image_name $tag=default_tag:
+    #!/usr/bin/env bash
+    set -eou pipefail
+    
+    target_image="$(just get-image-name ${target_image})"
+
+    echo "${tag} ${major_version}"
+
 # This Justfile recipe builds a container image using Podman.
 #
 # Arguments:
-#   $target_image - The tag you want to apply to the image (default: aurora).
-#   $tag - The tag for the image (default: lts).
-#   $dx - Enable DX (default: "0").
-#   $hwe - Enable HWE (default: "0").
-#   $gdx - Enable GDX (default: "0").
-#
-# DX:
-#   Developer Experience (DX) is a feature that allows you to install the latest developer tools for your system.
-#   Packages include VScode, Docker, Distrobox, and more.
-# HWE:
-#   Hardware Enablement (HWE) is a feature that allows you to install the latest hardware support for your system.
-#   Currently this install the Hyperscale SIG kernel which will stay ahead of the CentOS Stream kernel and enables btrfs
-# GDX: https://docs.projectaurora.io/gdx/
-#   GPU Developer Experience (GDX) creates a base as an AI and Graphics platform.
-#   Installs Nvidia drivers, CUDA, and other tools.
+#   $target_image - The tag you want to apply to the image (default: $image_name).
+#   $tag - The tag for the image (default: $default_tag).
 #
 # The script constructs the version string using the tag and the current date.
 # If the git working directory is clean, it also includes the short SHA of the current HEAD.
 #
-# just build $target_image $tag $dx $hwe $gdx
+# just build $target_image $tag
 #
 # Example usage:
-#   just build aurora lts 1 0 1
+#   just build aurora lts
 #
 # This will build an image 'aurora:lts' with DX and GDX enabled.
 #
 
 # Build the image using the specified parameters
-build $flavor=image_flavor $tag=default_tag:
+build $target_image=image_name $tag=default_tag:
     #!/usr/bin/env bash
-    set -euo pipefail
 
-    base_image="$(just get-base-image ${flavor})"
-    target_image="$(just get-image-name ${flavor})"
+    base_image="$(just get-base-image ${target_image})"
+    target_image="$(just get-image-name ${target_image})"
 
     BUILD_ARGS=()
-    BUILD_ARGS+=("--build-arg" "IMAGE_FLAVOR=${flavor}")
+    BUILD_ARGS+=("--build-arg" "IMAGE_NAME=${target_image}")
     BUILD_ARGS+=("--build-arg" "IMAGE_VENDOR=${repo_organization}")
     BUILD_ARGS+=("--build-arg" "BASE_IMAGE=${base_image}")
     BUILD_ARGS+=("--build-arg" "MAJOR_VERSION=${major_version}")
@@ -168,13 +164,13 @@ build $flavor=image_flavor $tag=default_tag:
         --tag "${target_image}:${tag}" \
         .
 
-rechunk $flavor=image_flavor $fresh='false' $tag=default_tag:
+rechunk $target_image=image_name $fresh='false' $tag=default_tag:
     #!/usr/bin/env bash
 
     echo "::group:: Rechunk Build Prep"
     set -eou pipefail
 
-    target_image="$(just get-image-name ${flavor})"
+    target_image="$(just get-image-name ${target_image})"
 
     REF=localhost/${target_image}:${tag}
     RECHUNK=ghcr.io/hhd-dev/rechunk:latest
@@ -182,7 +178,7 @@ rechunk $flavor=image_flavor $fresh='false' $tag=default_tag:
     ID=$(podman images --filter reference=${REF} --format "'{{ '{{.ID}}' }}'")
 
     if [[ -z "$ID" ]]; then
-        just build $flavor $tag
+        just build $target_image $tag
     fi
 
     if [[ "${UID}" -gt "0" ]]; then
@@ -242,7 +238,7 @@ rechunk $flavor=image_flavor $fresh='false' $tag=default_tag:
         --volume cache_ostree:/var/ostree \
         --env REPO=/var/ostree/repo \
         --env PREV_REF=$PREV_REF \
-        --env LABELS="'$(just get-labels $flavor)'" \
+        --env LABELS="'$(just get-labels $target_image)'" \
         --env OUT_NAME="$OUT_NAME" \
         --env VERSION="$VERSION" \
         --env VERSION_FN=/workspace/version.txt \
@@ -254,11 +250,11 @@ rechunk $flavor=image_flavor $fresh='false' $tag=default_tag:
     echo "::endgroup::"
 
     echo "::group:: Cleanup"
-    just sudoif find ${target_image}_${tag} -type d -exec chmod 0755 {} \; || true
-    just sudoif find ${target_image}_${tag}* -type f -exec chmod 0644 {} \; || true
+    just sudoif find ${target_image}_${tag} -type d -exec chmod 0755 {} \\\; || true
+    just sudoif find ${target_image}_${tag}* -type f -exec chmod 0644 {} \\\; || true
     if [[ "${UID}" -gt "0" ]]; then
         just sudoif chown -R "${UID}":"${GROUPS[0]}" "${PWD}"
-        just _load_image ${flavor} ${tag}
+        just _load_image ${target_image} ${tag}
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
         just sudoif chown -R "${SUDO_UID}":"${SUDO_GID}" "/run/user/${SUDO_UID}/just"
         just sudoif chown -R "${SUDO_UID}":"${SUDO_GID}" "${PWD}"
@@ -267,28 +263,20 @@ rechunk $flavor=image_flavor $fresh='false' $tag=default_tag:
     just sudoif podman volume rm cache_ostree
     echo "::endgroup::"
 
-_load_image $flavor=image_flavor $tag=default_tag:
+_load_image $target_image=image_name $tag=default_tag:
     #!/usr/bin/env bash
     set -eou pipefail
     
-    target_image="$(just get-image-name ${flavor})"
+    target_image="$(just get-image-name ${target_image})"
     OUT_NAME="${target_image}_${tag}"
 
     IMAGE=$(podman pull oci:${PWD}/$OUT_NAME)
     podman tag ${IMAGE} localhost/${target_image}:${tag}
-    for t in $(just get-tags $flavor $tag); do
+    for t in $(just get-tags $target_image $tag); do
         podman tag ${IMAGE} localhost/${target_image}:${t}
     done
     podman images
     just sudoif rm -rf $OUT_NAME
-
-get-tags $flavor=image_flavor $tag=default_tag:
-    #!/usr/bin/env bash
-    set -eou pipefail
-    
-    target_image="$(just get-image-name ${flavor})"
-
-    echo "${tag} ${major_version}"
 
 # Command: _rootful_load_image
 # Description: This script checks if the current user is root or running under sudo. If not, it attempts to resolve the image tag using podman inspect.
@@ -307,7 +295,7 @@ get-tags $flavor=image_flavor $tag=default_tag:
 # 3. If the image is found, load it into rootful podman using podman scp.
 # 4. If the image is not found, pull it from the remote repository into reootful podman.
 
-_rootful_load_image $flavor=image_flavor $tag=default_tag:
+_rootful_load_image $target_image=image_name $tag=default_tag:
     #!/usr/bin/bash
     set -eoux pipefail
 
@@ -317,8 +305,7 @@ _rootful_load_image $flavor=image_flavor $tag=default_tag:
         exit 0
     fi
 
-    target_image="$(just get-image-name ${flavor})"
-
+    # Try to resolve the image tag using podman inspect
     set +e
     resolved_tag=$(podman inspect -t image "${target_image}:${tag}" | jq -r '.[].RepoTags.[0]')
     return_code=$?
@@ -346,23 +333,22 @@ _rootful_load_image $flavor=image_flavor $tag=default_tag:
 #   target_image: The name of the image to build (ex. localhost/fedora)
 #   tag: The tag of the image to build (ex. latest)
 #   type: The type of image to build (ex. qcow2, raw, iso)
-#   config: The configuration file to use for the build (default: image.toml)
+#   config: The configuration file to use for the build (default: disk_config/disk.toml)
 
-# Example: just _rebuild-bib localhost/fedora latest qcow2 image.toml
-_build-bib $flavor $tag $type $config: (_rootful_load_image flavor tag)
+# Example: just _rebuild-bib localhost/fedora latest qcow2 disk_config/disk.toml
+_build-bib $target_image $tag $type $config: (_rootful_load_image target_image tag)
     #!/usr/bin/env bash
     set -euo pipefail
 
-    target_image="localhost/$(just get-image-name ${flavor})"
-
     args="--type ${type} "
-    args+="--use-librepo=True"
-
-    if [[ $target_image == localhost/* ]]; then
-      args+=" --local"
-    fi
+    args+="--use-librepo=True "
+    args+="--rootfs=btrfs"
 
     BUILDTMP=$(mktemp -p "${PWD}" -d -t _build-bib.XXXXXXXXXX)
+    MANIFESTTMP=$(mktemp -d)
+
+    podman run --rm --privileged -v "${MANIFESTTMP}":/manifests --entrypoint="/bin/sh" "${bib_image}" -c 'cp -d /usr/share/bootc-image-builder/defs/* /manifests'
+    ln -s fedora-40.yaml "${MANIFESTTMP}/pulsar-${major_version}.yaml"
 
     sudo podman run \
       --rm \
@@ -374,9 +360,9 @@ _build-bib $flavor $tag $type $config: (_rootful_load_image flavor tag)
       -v $(pwd)/${config}:/config.toml:ro \
       -v $BUILDTMP:/output \
       -v /var/lib/containers/storage:/var/lib/containers/storage \
+      -v "${MANIFESTTMP}":/usr/share/bootc-image-builder/defs \
       "${bib_image}" \
       ${args} \
-      --rootfs btrfs \
       "${target_image}:${tag}"
 
     mkdir -p output
@@ -389,37 +375,37 @@ _build-bib $flavor $tag $type $config: (_rootful_load_image flavor tag)
 #   target_image: The name of the image to build (ex. localhost/fedora)
 #   tag: The tag of the image to build (ex. latest)
 #   type: The type of image to build (ex. qcow2, raw, iso)
-#   config: The configuration file to use for the build (deafult: image.toml)
+#   config: The configuration file to use for the build (deafult: disk_config/disk.toml)
 
-# Example: just _rebuild-bib localhost/fedora latest qcow2 image.toml
-_rebuild-bib $flavor $tag $type $config: (build flavor tag) && (_build-bib flavor tag type config)
+# Example: just _rebuild-bib localhost/fedora latest qcow2 disk_config/disk.toml
+_rebuild-bib $target_image $tag $type $config: (build target_image tag) && (_build-bib target_image tag type config)
 
 # Build a QCOW2 virtual machine image
-[group('Build Virtual Machine Image')]
-build-qcow2 $flavor=image_flavor $tag=default_tag: && (_build-bib flavor tag "qcow2" "image.toml")
+[group('Build Virtal Machine Image')]
+build-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "qcow2" "disk_config/disk.toml")
 
 # Build a RAW virtual machine image
-[group('Build Virtual Machine Image')]
-build-raw $flavor=image_flavor $tag=default_tag: && (_build-bib flavor tag "raw" "image.toml")
+[group('Build Virtal Machine Image')]
+build-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "raw" "disk_config/disk.toml")
 
 # Build an ISO virtual machine image
-[group('Build Virtual Machine Image')]
-build-iso $flavor=image_flavor $tag=default_tag: && (_build-bib flavor tag "iso" "iso.toml")
+[group('Build Virtal Machine Image')]
+build-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "iso" "disk_config/iso.toml")
 
 # Rebuild a QCOW2 virtual machine image
-[group('Build Virtual Machine Image')]
-rebuild-qcow2 $flavor=image_flavor $tag=default_tag: && (_rebuild-bib flavor tag "qcow2" "image.toml")
+[group('Build Virtal Machine Image')]
+rebuild-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "qcow2" "disk_config/disk.toml")
 
 # Rebuild a RAW virtual machine image
-[group('Build Virtual Machine Image')]
-rebuild-raw $flavor=image_flavor $tag=default_tag: && (_rebuild-bib flavor tag "raw" "image.toml")
+[group('Build Virtal Machine Image')]
+rebuild-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "raw" "disk_config/disk.toml")
 
 # Rebuild an ISO virtual machine image
-[group('Build Virtual Machine Image')]
-rebuild-iso $flavor=image_flavor $tag=default_tag: && (_rebuild-bib flavor tag "iso" "iso.toml")
+[group('Build Virtal Machine Image')]
+rebuild-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "iso" "disk_config/iso.toml")
 
 # Run a virtual machine with the specified image type and configuration
-_run-vm $flavor $tag $type $config:
+_run-vm $target_image $tag $type $config:
     #!/usr/bin/bash
     set -eoux pipefail
 
@@ -431,7 +417,7 @@ _run-vm $flavor $tag $type $config:
 
     # Build the image if it does not exist
     if [[ ! -f "${image_file}" ]]; then
-        just "build-${type}" "$flavor" "$tag"
+        just "build-${type}" "$target_image" "$tag"
     fi
 
     # Determine an available port to use
@@ -444,7 +430,7 @@ _run-vm $flavor $tag $type $config:
 
     # Set up the arguments for running the VM
     run_args=()
-    run_args+=(--rm -it --privileged)
+    run_args+=(--rm --privileged)
     run_args+=(--pull=newer)
     run_args+=(--publish "127.0.0.1:${port}:8006")
     run_args+=(--env "CPU_CORES=4")
@@ -454,37 +440,32 @@ _run-vm $flavor $tag $type $config:
     run_args+=(--env "GPU=Y")
     run_args+=(--device=/dev/kvm)
     run_args+=(--volume "${PWD}/${image_file}":"/boot.${type}")
-    run_args+=(docker.io/qemux/qemu-docker)
-    
+    run_args+=(docker.io/qemux/qemu)
+
     # Run the VM and open the browser to connect
-    # podman run "${run_args[@]}" &
-    # xdg-open http://localhost:${port}
-    # fg "%podman"
-    (sleep 1; xdg-open http://localhost:${port}) &
+    (sleep 30 && xdg-open http://localhost:"$port") &
     podman run "${run_args[@]}"
 
-
-
 # Run a virtual machine from a QCOW2 image
-[group('Run Virtual Machine')]
-run-vm-qcow2 $flavor=image_flavor $tag=default_tag: && (_run-vm flavor tag "qcow2" "image.toml")
+[group('Run Virtal Machine')]
+run-vm-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_run-vm target_image tag "qcow2" "disk_config/disk.toml")
 
 # Run a virtual machine from a RAW image
-[group('Run Virtual Machine')]
-run-vm-raw $flavor=image_flavor $tag=default_tag: && (_run-vm flavor tag "raw" "image.toml")
+[group('Run Virtal Machine')]
+run-vm-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_run-vm target_image tag "raw" "disk_config/disk.toml")
 
 # Run a virtual machine from an ISO
-[group('Run Virtual Machine')]
-run-vm-iso $flavor=image_flavor $tag=default_tag: && (_run-vm flavor tag "iso" "iso.toml")
+[group('Run Virtal Machine')]
+run-vm-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_run-vm target_image tag "iso" "disk_config/iso.toml")
 
 # Run a virtual machine using systemd-vmspawn
 [group('Run Virtal Machine')]
-spawn-vm $flavor=image_flavor $tag=default_tag rebuild="0" type="qcow2" ram="6G":
+spawn-vm rebuild="0" type="qcow2" ram="6G":
     #!/usr/bin/env bash
 
     set -euo pipefail
 
-    [ "{{ rebuild }}" -eq 1 ] && echo "Rebuilding the ISO" && just rebuild-vm $flavor $tag {{ rebuild }} {{ type }}
+    [ "{{ rebuild }}" -eq 1 ] && echo "Rebuilding the ISO" && just build-vm {{ rebuild }} {{ type }}
 
     systemd-vmspawn \
       -M "bootc-image" \
@@ -498,8 +479,24 @@ spawn-vm $flavor=image_flavor $tag=default_tag rebuild="0" type="qcow2" ram="6G"
 
 # Runs shell check on all Bash scripts
 lint:
+    #!/usr/bin/env bash
+    set -eoux pipefail
+    # Check if shellcheck is installed
+    if ! command -v shellcheck &> /dev/null; then
+        echo "shellcheck could not be found. Please install it."
+        exit 1
+    fi
+    # Run shellcheck on all Bash scripts
     /usr/bin/find . -iname "*.sh" -type f -exec shellcheck "{}" ';'
 
 # Runs shfmt on all Bash scripts
 format:
+    #!/usr/bin/env bash
+    set -eoux pipefail
+    # Check if shfmt is installed
+    if ! command -v shfmt &> /dev/null; then
+        echo "shellcheck could not be found. Please install it."
+        exit 1
+    fi
+    # Run shfmt on all Bash scripts
     /usr/bin/find . -iname "*.sh" -type f -exec shfmt --write "{}" ';'

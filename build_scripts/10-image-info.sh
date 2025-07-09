@@ -4,7 +4,7 @@ set -ouex pipefail
 
 mkdir -p /usr/share/pulsar
 
-IMAGE_NAME="pulsar-${IMAGE_FLAVOR}"
+IMAGE_FLAVOR="${IMAGE_NAME/pulsar-/}"
 IMAGE_NAME="${IMAGE_NAME/-main/}"
 
 IMAGE_PRETTY_NAME="Pulsar"
@@ -27,7 +27,7 @@ VERSION_PRETTY="F${VERSION_TAG}-${IMAGE_FLAVOR}"
 # Image Info File
 cat > $IMAGE_INFO <<EOF
 {
-  "image-name": "$IMAGE_NAME",
+  "image-name": "pulsar",
   "image-flavor": "$IMAGE_FLAVOR",
   "image-vendor": "$IMAGE_VENDOR",
   "image-ref": "$IMAGE_REF",

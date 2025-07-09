@@ -16,6 +16,6 @@ org.videolan.VLC
 com.github.zocker_160.SyncThingy
 "
 
-if [[ $IMAGE_FLAVOR =~ "main" || $IMAGE_FLAVOR =~ "deck" ]]; then
+if [[ $IMAGE_NAME =~ "main" || $IMAGE_NAME =~ "deck" ]]; then
   echo $shared >/usr/share/pulsar/flatpak/install
 fi

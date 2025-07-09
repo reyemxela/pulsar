@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! $IMAGE_FLAVOR =~ "nvidia" ]]; then
+if [[ ! $IMAGE_NAME =~ "nvidia" ]]; then
   echo "not nvidia image, skipping..."
   exit 0
 fi
@@ -8,7 +8,7 @@ fi
 set -ouex pipefail
 
 KERNEL_BASE="bazzite"
-if [[ $IMAGE_FLAVOR =~ "cli" ]]; then
+if [[ $IMAGE_NAME =~ "cli" ]]; then
   KERNEL_BASE="main"
 fi
 
@@ -24,7 +24,7 @@ curl -Lo /tmp/nvidia-install.sh https://raw.githubusercontent.com/ublue-os/main/
 chmod +x /tmp/nvidia-install.sh
 
 IMAGE_NAME="kinoite"
-if [[ $IMAGE_FLAVOR =~ "cli" ]]; then
+if [[ $IMAGE_NAME =~ "cli" ]]; then
   IMAGE_NAME=""
 fi
 IMAGE_NAME="$IMAGE_NAME" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh

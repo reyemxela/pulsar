@@ -2,14 +2,11 @@
 
 set -oue pipefail
 
-IMAGE_NAME=pulsar
-IMAGE_SUFFIX=
-FEDORA_VERSION=41
+IMAGE_NAME=pulsar-cli-nvidia
+MAJOR_VERSION=42
 IMAGE_REPO=ghcr.io/reyemxela
 
 INSTALLER_VARIANT=kinoite
-
-FULL_IMAGE_NAME=${IMAGE_NAME}${IMAGE_SUFFIX:+-$IMAGE_SUFFIX}
 
 mkdir -p output
 
@@ -19,15 +16,22 @@ if [[ ${1-} != "--skipbuild" ]]; then
   sudo just build
 fi
 
+ID="$(sudo podman images --filter reference="${IMAGE_NAME}:latest" --format "{{.ID}}")"
+if [[ $ID != "" ]]; then
+  SRC="containers-storage:${ID}"
+else
+  SRC="containers-storage:${IMAGE_REPO}/${IMAGE_NAME}:latest"
+fi
+
 sudo podman run --rm --privileged \
   --volume isocache:/cache \
   --volume ./output:/build-container-installer/build \
   --volume /var/lib/containers/storage:/var/lib/containers/storage \
   ghcr.io/jasonn3/build-container-installer:latest \
   DNF_CACHE=/cache/dnf \
-  VERSION=$FEDORA_VERSION \
-  IMAGE_SRC=containers-storage:localhost/${FULL_IMAGE_NAME}:latest \
-  IMAGE_NAME=$FULL_IMAGE_NAME \
+  VERSION=$MAJOR_VERSION \
+  IMAGE_SRC=$SRC \
+  IMAGE_NAME=$IMAGE_NAME \
   IMAGE_TAG=latest \
   IMAGE_REPO=$IMAGE_REPO \
   VARIANT=$INSTALLER_VARIANT
@@ -39,6 +43,6 @@ cat << EOF
 ---
 ISO created. To create a test VM, run:
 
-virt-install --connect qemu:///system --name ${FULL_IMAGE_NAME}_$(date '+%Y%m%d-%H%M%S') --memory 4096 --vcpus 2 --disk size=30 --cdrom ${PWD}/output/deploy.iso --os-variant $(virt-install --osinfo list |grep -i fedora |head -1)
+virt-install --connect qemu:///system --name ${IMAGE_NAME}_$(date '+%Y%m%d-%H%M%S') --memory 4096 --vcpus 2 --disk size=30 --cdrom ${PWD}/output/deploy.iso --os-variant $(virt-install --osinfo list |grep -i fedora |head -1)
 
 EOF

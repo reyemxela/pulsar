@@ -53,13 +53,12 @@ jobs:
       - name: Matrix Variables
         shell: bash
         run: |
-          IMAGE_FLAVOR="${{ matrix.image_flavor }}"
-          IMAGE_NAME="$(just get-image-name $IMAGE_FLAVOR)"
+          flavor="${{ matrix.image_flavor }}"
+          IMAGE_NAME="$(just get-image-name pulsar-${flavor})"
           MAJOR_VERSION="${{ matrix.major_version }}"
-          BASE_IMAGE="$(just get-base-image $IMAGE_FLAVOR)"
+          BASE_IMAGE="$(just get-base-image $IMAGE_NAME)"
           FRESH_RECHUNK="${{ github.event.inputs.fresh-rechunk }}"
 
-          echo "IMAGE_FLAVOR=${IMAGE_FLAVOR}" >> $GITHUB_ENV
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
           echo "MAJOR_VERSION=${MAJOR_VERSION}" >> $GITHUB_ENV
           echo "BASE_IMAGE=${BASE_IMAGE}" >> $GITHUB_ENV
@@ -71,23 +70,23 @@ jobs:
       - name: Build Image
         shell: bash
         run: |
-          sudo just build ${{ env.IMAGE_FLAVOR }}
+          sudo just build ${{ env.IMAGE_NAME }}
 
       - name: Rechunk Image
         shell: bash
         run: |
-          sudo just rechunk ${{ env.IMAGE_FLAVOR }} ${{ env.FRESH_RECHUNK }}
+          sudo just rechunk ${{ env.IMAGE_NAME }} ${{ env.FRESH_RECHUNK }}
 
       - name: Load and Tag Image
         shell: bash
         run: |
-          just _load_image ${{ env.IMAGE_FLAVOR }}
+          just _load_image ${{ env.IMAGE_NAME }}
 
       - name: Get Tags
         id: get_tags
         shell: bash
         run: |
-          tags=$(just get-tags ${{ env.IMAGE_FLAVOR }})
+          tags=$(just get-tags ${{ env.IMAGE_NAME }})
           echo "tags=$tags" >> $GITHUB_OUTPUT
 
       - name: Remove auxiliary images
