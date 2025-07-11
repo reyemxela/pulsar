@@ -1,5 +1,5 @@
 export repo_organization := env("GITHUB_REPOSITORY_OWNER", "reyemxela")
-export image_name := env("IMAGE_NAME", "pulsar-main") # output image name, usually same as repo name, change as needed
+export image_name := env("IMAGE_NAME", "pulsar") # output image name, usually same as repo name, change as needed
 export major_version := env("MAJOR_VERSION", "42")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
@@ -10,8 +10,8 @@ alias rebuild-vm := rebuild-qcow2
 alias run-vm := run-vm-qcow2
 
 base_images := '(
-    [pulsar-main]="bazzite"
-    [pulsar-main-nvidia]="bazzite"
+    [pulsar]="bazzite"
+    [pulsar-nvidia]="bazzite"
     [pulsar-deck]="bazzite-deck"
     [pulsar-cli]="base-main"
     [pulsar-cli-nvidia]="base-main"
