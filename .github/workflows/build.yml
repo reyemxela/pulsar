@@ -55,7 +55,7 @@ jobs:
         run: |
           IMAGE_NAME="${{ matrix.image_name }}"
           MAJOR_VERSION="${{ matrix.major_version }}"
-          BASE_IMAGE="$(just get-base-image $IMAGE_NAME"
+          BASE_IMAGE="$(just get-base-image $IMAGE_NAME)"
           FRESH_RECHUNK="${{ github.event.inputs.fresh-rechunk }}"
 
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
