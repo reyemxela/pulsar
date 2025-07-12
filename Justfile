@@ -275,7 +275,7 @@ _load_image $target_image=image_name $tag=default_tag:
 
     IMAGE=$(podman pull oci:${PWD}/$OUT_NAME)
     podman tag ${IMAGE} localhost/${target_image}:${tag}
-    for t in $(just get-tags $target_image $tag); do
+    for t in $(just get-tags $tag); do
         podman tag ${IMAGE} localhost/${target_image}:${t}
     done
     podman images
