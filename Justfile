@@ -10,8 +10,8 @@ alias rebuild-vm := rebuild-qcow2
 alias run-vm := run-vm-qcow2
 
 base_images := '(
-    [pulsar]="bazzite"
-    [pulsar-nvidia]="bazzite"
+    [pulsar-main]="bazzite"
+    [pulsar-main-nvidia]="bazzite"
     [pulsar-deck]="bazzite-deck"
     [pulsar-cli]="base-main"
     [pulsar-cli-nvidia]="base-main"
