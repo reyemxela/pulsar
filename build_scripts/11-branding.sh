@@ -3,7 +3,7 @@
 set -ouex pipefail
 
 # kde about dialog
-case $IMAGE_NAME in
+case $IMAGE_FLAVOR in
   *main*)
     VARIANT="Desktop" ;;
   *deck*)

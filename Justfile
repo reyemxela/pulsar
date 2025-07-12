@@ -10,8 +10,8 @@ alias rebuild-vm := rebuild-qcow2
 alias run-vm := run-vm-qcow2
 
 base_images := '(
-    [pulsar-main]="bazzite"
-    [pulsar-main-nvidia]="bazzite"
+    [pulsar]="bazzite"
+    [pulsar-nvidia]="bazzite"
     [pulsar-deck]="bazzite-deck"
     [pulsar-cli]="base-main"
     [pulsar-cli-nvidia]="base-main"
@@ -81,12 +81,6 @@ sudoif command *args:
 
 [group('Utility')]
 [private]
-get-image-name $target_image=image_name:
-    #!/usr/bin/env bash
-    echo "${target_image/-main/}"
-
-[group('Utility')]
-[private]
 get-base-image $target_image=image_name:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -96,18 +90,31 @@ get-base-image $target_image=image_name:
 
 [group('Utility')]
 [private]
+get-image-flavor $target_image=image_name:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shopt -s extglob
+
+    if [[ $target_image == "pulsar" || $target_image == "pulsar-nvidia" ]]; then
+        image_flavor=${target_image/pulsar/main}
+    else
+        image_flavor=${target_image/pulsar?(-)/}
+    fi
+
+    echo "$image_flavor"
+
+[group('Utility')]
+[private]
 get-labels $target_image=image_name:
     #!/usr/bin/env bash
     set -euo pipefail
-
-    image_name="$(just get-image-name ${target_image})"
 
     echo "\
     org.opencontainers.image.created=$(date -u +%Y\-%m\-%d\T%H\:%M\:%S\Z)
     org.opencontainers.image.description=Customized Universal Blue images with some extras
     org.opencontainers.image.documentation=https://github.com/${repo_organization}/pulsar
     org.opencontainers.image.source=https://github.com/${repo_organization}/pulsar/blob/main/Containerfile
-    org.opencontainers.image.title=${image_name}
+    org.opencontainers.image.title=${target_image}
     org.opencontainers.image.url=https://github.com/${repo_organization}/pulsar
     org.opencontainers.image.vendor=${repo_organization}
     io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${repo_organization}/pulsar/refs/heads/main/README.md
@@ -120,12 +127,10 @@ get-labels $target_image=image_name:
 
 [group('Utility')]
 [private]
-get-tags $target_image=image_name $tag=default_tag:
+get-tags $tag=default_tag:
     #!/usr/bin/env bash
     set -eou pipefail
     
-    target_image="$(just get-image-name ${target_image})"
-
     echo "${tag} ${major_version}"
 
 # This Justfile recipe builds a container image using Podman.
@@ -150,10 +155,11 @@ build $target_image=image_name $tag=default_tag:
     #!/usr/bin/env bash
 
     base_image="$(just get-base-image ${target_image})"
-    target_image="$(just get-image-name ${target_image})"
+    image_flavor="$(just get-image-flavor ${target_image})"
 
     BUILD_ARGS=()
     BUILD_ARGS+=("--build-arg" "IMAGE_NAME=${target_image}")
+    BUILD_ARGS+=("--build-arg" "IMAGE_FLAVOR=${image_flavor}")
     BUILD_ARGS+=("--build-arg" "IMAGE_VENDOR=${repo_organization}")
     BUILD_ARGS+=("--build-arg" "BASE_IMAGE=${base_image}")
     BUILD_ARGS+=("--build-arg" "MAJOR_VERSION=${major_version}")
@@ -169,8 +175,6 @@ rechunk $target_image=image_name $fresh='false' $tag=default_tag:
 
     echo "::group:: Rechunk Build Prep"
     set -eou pipefail
-
-    target_image="$(just get-image-name ${target_image})"
 
     REF=localhost/${target_image}:${tag}
     RECHUNK=ghcr.io/hhd-dev/rechunk:latest
@@ -267,7 +271,6 @@ _load_image $target_image=image_name $tag=default_tag:
     #!/usr/bin/env bash
     set -eou pipefail
     
-    target_image="$(just get-image-name ${target_image})"
     OUT_NAME="${target_image}_${tag}"
 
     IMAGE=$(podman pull oci:${PWD}/$OUT_NAME)

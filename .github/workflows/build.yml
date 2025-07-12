@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_flavor: [main, deck, cli, cli-nvidia]
+        image_name: [pulsar, pulsar-deck, pulsar-cli, pulsar-cli-nvidia]
         major_version: [42]
           
     steps:
@@ -53,10 +53,9 @@ jobs:
       - name: Matrix Variables
         shell: bash
         run: |
-          flavor="${{ matrix.image_flavor }}"
-          IMAGE_NAME="$(just get-image-name pulsar-${flavor})"
+          IMAGE_NAME="${{ matrix.image_name }}"
           MAJOR_VERSION="${{ matrix.major_version }}"
-          BASE_IMAGE="$(just get-base-image pulsar-${flavor})"
+          BASE_IMAGE="$(just get-base-image $IMAGE_NAME"
           FRESH_RECHUNK="${{ github.event.inputs.fresh-rechunk }}"
 
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
@@ -86,7 +85,7 @@ jobs:
         id: get_tags
         shell: bash
         run: |
-          tags=$(just get-tags ${{ env.IMAGE_NAME }})
+          tags=$(just get-tags)
           echo "tags=$tags" >> $GITHUB_OUTPUT
 
       - name: Remove auxiliary images

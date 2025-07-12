@@ -55,10 +55,10 @@ gui=(
 
 dnf5 -y install ${shared[@]}
 
-if [[ $IMAGE_NAME =~ "main" ]]; then
+if [[ $IMAGE_FLAVOR =~ "main" ]]; then
   dnf5 -y install ${virt[@]} ${gui[@]}
-elif [[ $IMAGE_NAME =~ "deck" ]]; then
+elif [[ $IMAGE_FLAVOR =~ "deck" ]]; then
   dnf5 -y install ${gui[@]}
-elif [[ $IMAGE_NAME =~ "cli" ]]; then
+elif [[ $IMAGE_FLAVOR =~ "cli" ]]; then
   dnf5 -y install ${server[@]} ${virt[@]}
 fi

@@ -25,7 +25,7 @@ if [ -f /usr/share/pulsar/flatpak/install ]; then
 fi
 
 # updates
-if [[ ! $IMAGE_NAME =~ "deck" ]]; then
+if [[ ! $IMAGE_FLAVOR =~ "deck" ]]; then
   # let deck behave normally, everything else gets auto updates
   systemctl enable uupd.timer
 fi

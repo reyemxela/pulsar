@@ -4,9 +4,6 @@ set -ouex pipefail
 
 mkdir -p /usr/share/pulsar
 
-IMAGE_FLAVOR="${IMAGE_NAME/pulsar-/}"
-IMAGE_NAME="${IMAGE_NAME/-main/}"
-
 IMAGE_PRETTY_NAME="Pulsar"
 IMAGE_LIKE="fedora"
 HOME_URL="https://github.com/${IMAGE_VENDOR}/pulsar"
@@ -27,7 +24,7 @@ VERSION_PRETTY="F${VERSION_TAG}-${IMAGE_FLAVOR}"
 # Image Info File
 cat > $IMAGE_INFO <<EOF
 {
-  "image-name": "pulsar",
+  "image-name": "$IMAGE_NAME",
   "image-flavor": "$IMAGE_FLAVOR",
   "image-vendor": "$IMAGE_VENDOR",
   "image-ref": "$IMAGE_REF",
