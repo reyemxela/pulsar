@@ -68,7 +68,7 @@ ln -sf /usr/share/wallpapers/Pulsar.jpg /usr/share/backgrounds/default.jxl
 ln -sf /usr/share/wallpapers/Pulsar.jpg /usr/share/backgrounds/default-dark.jxl
 
 # taskbar icons
-sed -i '/<entry name="launchers" type="StringList">/,/<\/entry>/ s!<default>[^<]*</default>!<default>preferred://browser,preferred://filemanager,applications:systemsettings.desktop,applications:Alacritty-distrobox.desktop,applications:Alacritty.desktop,applications:code.desktop,applications:org.kde.discover.desktop,applications:steam.desktop</default>!' /usr/share/plasma/plasmoids/org.kde.plasma.taskmanager/contents/config/main.xml
+sed -i '/<entry name="launchers" type="StringList">/,/<\/entry>/ s!<default>[^<]*</default>!<default>preferred://browser,preferred://filemanager,applications:systemsettings.desktop,applications:Alacritty-distrobox.desktop,applications:Alacritty.desktop,applications:code.desktop,applications:io.github.kolunmi.Bazaar,applications:steam.desktop</default>!' /usr/share/plasma/plasmoids/org.kde.plasma.taskmanager/contents/config/main.xml
 
 # app menu favorites
-sed -i '/<entry name="favorites" type="StringList">/,/<\/entry>/ s!<default>[^<]*</default>!<default>preferred://browser,steam.desktop,systemsettings.desktop,org.kde.dolphin.desktop,org.kde.kate.desktop,Alacritty-distrobox.desktop,Alacritty.desktop,org.kde.discover.desktop,virt-manager.desktop,org.videolan.VLC.desktop,system-update.desktop</default>!' /usr/share/plasma/plasmoids/org.kde.plasma.kickoff/contents/config/main.xml
+sed -i '/<entry name="favorites" type="StringList">/,/<\/entry>/ s!<default>[^<]*</default>!<default>preferred://browser,steam.desktop,systemsettings.desktop,org.kde.dolphin.desktop,org.kde.kate.desktop,Alacritty-distrobox.desktop,Alacritty.desktop,io.github.kolunmi.Bazaar,virt-manager.desktop,org.videolan.VLC.desktop,system-update.desktop</default>!' /usr/share/plasma/plasmoids/org.kde.plasma.kickoff/contents/config/main.xml
