@@ -5,7 +5,7 @@ set -oue pipefail
 mkdir -p /var/lib/alternatives
 
 for script in /ctx/build_scripts/*-*.sh; do
-	printf "::group:: ===%s===\n" "$(basename "$script")"
+	printf "::group::\e[1;33m ===%s===\e[0m\n" "$(basename "$script")"
 	$script
 	printf "::endgroup::\n"
 done
