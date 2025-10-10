@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # SCRIPT VERSION
-VER=1
+VER=2
 IMAGE_NAME=$(jq -r '."image-name"' /usr/share/pulsar/image-info.json)
 FULL_VER="$VER-$IMAGE_NAME"
 
@@ -17,6 +17,9 @@ fi
 
 echo "Fixing libvirt labels..."
 restorecon -rv /var/{lib,log}/libvirt
+
+echo "Fixing cron labels..."
+restorecon -rv /var/spool/cron
 
 
 # create/update VER_FILE
