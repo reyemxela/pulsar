@@ -22,6 +22,7 @@ shared=(
   "p7zip-plugins"
   "picocom"
   "podman-compose"
+  "powertop"
   "ramalama"
   "rar"
   "shellcheck"
