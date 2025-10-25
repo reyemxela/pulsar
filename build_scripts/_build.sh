@@ -12,5 +12,4 @@ done
 
 set -x
 
-ostree container commit
 bootc container lint
