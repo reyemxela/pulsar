@@ -15,6 +15,7 @@ shared=(
   "etckeeper"
   "evtest"
   "gh"
+  "netbird"
   "netcat"
   "nmap"
   "osbuild-selinux"
