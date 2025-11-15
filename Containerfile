@@ -1,21 +1,21 @@
 ARG IMAGE_NAME="${IMAGE_NAME:-pulsar}"
 ARG IMAGE_FLAVOR="${IMAGE_FLAVOR:-main}"
 ARG IMAGE_VENDOR="${IMAGE_VENDOR:-reyemxela}"
-ARG BASE_IMAGE="${BASE_IMAGE:-bazzite}"
-ARG MAJOR_VERSION="${MAJOR_VERSION:-42}"
+ARG BASE_IMAGE="${BASE_IMAGE:-bazzite:stable-43}"
+ARG MAJOR_VERSION="${MAJOR_VERSION:-43}"
 
 # Allow build scripts to be referenced without being copied into the final image
 FROM scratch AS ctx
 COPY build_scripts /build_scripts
 COPY branding_files /branding_files
 
-FROM ghcr.io/ublue-os/${BASE_IMAGE}:${MAJOR_VERSION}
+FROM ghcr.io/ublue-os/${BASE_IMAGE}
 
 ARG IMAGE_NAME="${IMAGE_NAME:-pulsar}"
 ARG IMAGE_FLAVOR="${IMAGE_FLAVOR:-main}"
 ARG IMAGE_VENDOR="${IMAGE_VENDOR:-reyemxela}"
-ARG BASE_IMAGE="${BASE_IMAGE:-bazzite}"
-ARG MAJOR_VERSION="${MAJOR_VERSION:-42}"
+ARG BASE_IMAGE="${BASE_IMAGE:-bazzite:stable-43}"
+ARG MAJOR_VERSION="${MAJOR_VERSION:-43}"
 
 COPY system_files /
 

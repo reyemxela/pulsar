@@ -1,6 +1,6 @@
 export repo_organization := env("GITHUB_REPOSITORY_OWNER", "reyemxela")
 export image_name := env("IMAGE_NAME", "pulsar") # output image name, usually same as repo name, change as needed
-export major_version := env("MAJOR_VERSION", "42")
+export major_version := env("MAJOR_VERSION", "43")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
 
@@ -10,11 +10,11 @@ alias rebuild-vm := rebuild-qcow2
 alias run-vm := run-vm-qcow2
 
 base_images := '(
-    [pulsar]="bazzite"
-    [pulsar-nvidia]="bazzite"
-    [pulsar-deck]="bazzite-deck"
-    [pulsar-cli]="base-main"
-    [pulsar-cli-nvidia]="base-main"
+    [pulsar]="bazzite:stable-${version}"
+    [pulsar-nvidia]="bazzite:stable-${version}"
+    [pulsar-deck]="bazzite-deck:stable-${version}"
+    [pulsar-cli]="base-main:${version}"
+    [pulsar-cli-nvidia]="base-main:${version}"
 )'
 
 [private]
@@ -81,7 +81,7 @@ sudoif command *args:
 
 [group('Utility')]
 [private]
-get-base-image $target_image=image_name:
+get-base-image $target_image=image_name $version=major_version:
     #!/usr/bin/env bash
     set -euo pipefail
 
