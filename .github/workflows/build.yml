@@ -49,8 +49,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
-      - name: Install just, check syntax
-        uses: ublue-os/just-action@v2
+      - name: Install just
+        uses: ./.github/actions/install-just
         
       - name: Matrix Variables
         shell: bash
