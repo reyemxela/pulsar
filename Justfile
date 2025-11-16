@@ -2,7 +2,6 @@ export repo_organization := env("GITHUB_REPOSITORY_OWNER", "reyemxela")
 export default_image_name := env("IMAGE_NAME", "pulsar")
 export default_major_version := env("MAJOR_VERSION", "43")
 export default_tag := env("DEFAULT_TAG", "stable")
-
 base_images := '(
     [pulsar]="bazzite:stable-${version}"
     [pulsar-nvidia]="bazzite:stable-${version}"
@@ -10,6 +9,10 @@ base_images := '(
     [pulsar-cli]="base-main:${version}"
     [pulsar-cli-nvidia]="base-main:${version}"
 )'
+
+[private]
+default:
+    @just --list
 
 # prints "base_image_name:tag" for the specified image/version
 [group('Utility')]
@@ -72,6 +75,7 @@ get-tags $tag=default_tag $version=default_major_version:
     echo "${tags}"
 
 # builds specified image as "image_name:tag"
+[group('Build')]
 build $image=default_image_name $version=default_major_version $tag=default_tag:
     #!/usr/bin/env bash
 
@@ -91,6 +95,7 @@ build $image=default_image_name $version=default_major_version $tag=default_tag:
         --tag "${image}:${tag}" \
         .
 
+[group('Build')]
 rechunk $image=default_image_name $version=default_major_version $tag=default_tag $fresh='false':
     #!/usr/bin/env bash
 
@@ -171,10 +176,11 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
     sudo podman volume rm cache_ostree
     echo "::endgroup::"
 
+[group('Build')]
 load_image $image=default_image_name $version=default_major_version $tag=default_tag:
     #!/usr/bin/env bash
     set -eou pipefail
-    
+
     OUT_NAME="${image}_${tag}"
 
     IMAGE_ID=$(podman pull oci:$OUT_NAME)
@@ -184,3 +190,25 @@ load_image $image=default_image_name $version=default_major_version $tag=default
     done
     podman images
     rm -rf $OUT_NAME
+
+# Check Just Syntax
+[group('Just')]
+check:
+    #!/usr/bin/bash
+    find . -type f -name "*.just" | while read -r file; do
+    	echo "Checking syntax: $file"
+    	just --unstable --fmt --check -f $file
+    done
+    echo "Checking syntax: Justfile"
+    just --unstable --fmt --check -f Justfile
+
+# Fix Just Syntax
+[group('Just')]
+fix:
+    #!/usr/bin/bash
+    find . -type f -name "*.just" | while read -r file; do
+    	echo "Checking syntax: $file"
+    	just --unstable --fmt -f $file
+    done
+    echo "Checking syntax: Justfile"
+    just --unstable --fmt -f Justfile || { exit 1; }
