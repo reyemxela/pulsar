@@ -3,11 +3,13 @@ on:
   pull_request:
     branches:
       - main
+      - testing
   schedule:
     - cron: '0 22 * * 5'  # 10pm UTC on Friday (5/6pm EDT) - after upstream builds and before auto-updates at 4am Saturday
   push:
     branches:
       - main
+      - testing
     paths-ignore:
       - '**/README.md'
   workflow_dispatch:
@@ -47,39 +49,48 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
-      - name: Install Just
-        uses: ./.github/actions/install-just
+      - name: Install just, check syntax
+        uses: ublue-os/just-action@v2
         
       - name: Matrix Variables
         shell: bash
         run: |
           IMAGE_NAME="${{ matrix.image_name }}"
           MAJOR_VERSION="${{ matrix.major_version }}"
-          BASE_IMAGE="$(just get-base-image $IMAGE_NAME)"
           FRESH_RECHUNK="${{ github.event.inputs.fresh-rechunk }}"
+          TAG="${{ github.ref_name == 'main' && 'stable' || 'testing' }}"
 
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
           echo "MAJOR_VERSION=${MAJOR_VERSION}" >> $GITHUB_ENV
-          echo "BASE_IMAGE=${BASE_IMAGE}" >> $GITHUB_ENV
           echo "FRESH_RECHUNK=${FRESH_RECHUNK}" >> $GITHUB_ENV
+          echo "TAG=${TAG}" >> $GITHUB_ENV
           
-      - name: Maximize build space
-        uses: ublue-os/remove-unwanted-software@v8
+      - name: Mount BTRFS for podman storage
+        id: container-storage-action
+        uses: ublue-os/container-storage-action@main
+        continue-on-error: true # Fallback to the remove-unwanted-software-action if github doesn't allocate enough space
+        with:
+          target-dir: /var/lib/containers
+          mount-opts: compress-force=zstd:2
       
       - name: Build Image
         shell: bash
         run: |
-          sudo just build ${{ env.IMAGE_NAME }}
+          sudo just build ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }}
 
       - name: Rechunk Image
         shell: bash
         run: |
-          sudo just rechunk ${{ env.IMAGE_NAME }} ${{ env.FRESH_RECHUNK }}
+          just rechunk ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }} ${{ env.FRESH_RECHUNK }}
 
       - name: Load and Tag Image
         shell: bash
         run: |
-          just _load_image ${{ env.IMAGE_NAME }}
+          just load_image ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }}
+
+      - name: Remove auxiliary images
+        run: |
+          sudo podman rmi --all
 
       - name: Get Tags
         id: get_tags
@@ -87,10 +98,6 @@ jobs:
         run: |
           tags=$(just get-tags)
           echo "tags=$tags" >> $GITHUB_OUTPUT
-
-      - name: Remove auxiliary images
-        run: |
-          sudo podman rmi --all
 
       # - name: Check Secureboot
       #   shell: bash
