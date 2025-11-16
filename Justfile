@@ -68,7 +68,7 @@ get-tags $tag=default_tag $version=default_major_version:
 
     tags="${tag} ${tag}-${version}"
 
-    # "stable" == "latest" (and "<version>")
+    # "stable" also gets "latest" and "<version>"
     if [[ $tag == "stable" ]]; then
         tags="${tags} latest ${version}"
     fi
