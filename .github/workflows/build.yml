@@ -66,11 +66,13 @@ jobs:
           MAJOR_VERSION="${{ matrix.major_version }}"
           FRESH_RECHUNK="${{ github.event.inputs.fresh-rechunk }}"
           TAG="${{ github.ref_name == 'main' && 'stable' || 'testing' }}"
+          TAGS="$(just get-tags ${TAG} ${MAJOR_VERSION})"
 
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
           echo "MAJOR_VERSION=${MAJOR_VERSION}" >> $GITHUB_ENV
           echo "FRESH_RECHUNK=${FRESH_RECHUNK}" >> $GITHUB_ENV
           echo "TAG=${TAG}" >> $GITHUB_ENV
+          echo "TAGS=${TAGS}" >> $GITHUB_ENV
           
       - name: Mount BTRFS for podman storage
         id: container-storage-action
@@ -98,13 +100,6 @@ jobs:
       - name: Remove auxiliary images
         run: |
           sudo podman rmi --all
-
-      - name: Get Tags
-        id: get_tags
-        shell: bash
-        run: |
-          tags=$(just get-tags)
-          echo "tags=$tags" >> $GITHUB_OUTPUT
 
       # - name: Check Secureboot
       #   shell: bash
@@ -146,7 +141,7 @@ jobs:
           attempt_delay: 15000
           with: |
             image: ${{ env.IMAGE_NAME }}
-            tags: ${{ steps.get_tags.outputs.tags }}
+            tags: ${{ env.TAGS }}
             registry: ${{ steps.registry_case.outputs.lowercase }}
             username: ${{ env.REGISTRY_USER }}
             password: ${{ env.REGISTRY_PASSWORD }}
