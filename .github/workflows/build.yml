@@ -51,6 +51,13 @@ jobs:
         
       - name: Install just
         uses: ./.github/actions/install-just
+      
+      # this first run of `just` helps makes sure /run/user/(uid)/just is created.
+      # if the first run is a `sudo just`, permissions get dumb.
+      - name: Check justfiles
+        shell: bash
+        run: |
+          just check
         
       - name: Matrix Variables
         shell: bash
