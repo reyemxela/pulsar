@@ -232,7 +232,7 @@ build-iso $image=default_image_name $version=default_major_version $tag=default_
         IMAGE_SRC=$src \
         ISO_NAME="build/${isoname}"
         VARIANT=kinoite
-    
+
     if [[ -n "${SUDO_USER:-}" ]]; then
         chown -R "${SUDO_UID}":"${SUDO_GID}" output
     fi
