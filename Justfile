@@ -102,25 +102,24 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
     echo "::group:: Rechunk Build Prep"
     set -eou pipefail
 
-    if [[ "${UID}" -eq "0" ]]; then
-        echo "Must not be run as root!"
+    if [[ "${UID}" -ne "0" ]]; then
+        echo "Must be run as root!"
         exit 1
     fi
 
     REF=localhost/${image}:${tag}
     RECHUNK=ghcr.io/hhd-dev/rechunk:latest
 
-    CREF=$(sudo podman create ${REF} bash)
-    MOUNT=$(sudo podman mount "$CREF")
+    CREF=$(podman create ${REF} bash)
+    MOUNT=$(podman mount "$CREF")
     OUT_NAME="${image}_${tag}"
     VERSION="${version}.$(date '+%Y%m%d')"
 
-    sudo podman pull ${RECHUNK}
-
+    podman pull ${RECHUNK}
     echo "::endgroup::"
 
     echo "::group:: Rechunk Prune"
-    sudo podman run --rm \
+    podman run --rm \
         --security-opt label=disable \
         -v "$MOUNT":/var/tree \
         -e TREE=/var/tree \
@@ -130,7 +129,7 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
     echo "::endgroup::"
 
     echo "::group:: Create Tree"
-    sudo podman run --rm \
+    podman run --rm \
         --security-opt label=disable \
         -v "$MOUNT":/var/tree \
         -e TREE=/var/tree \
@@ -140,9 +139,9 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
         -u 0:0 \
         ${RECHUNK} \
         /sources/rechunk/2_create.sh
-    sudo podman unmount "$CREF"
-    sudo podman rm "$CREF"
-    sudo podman rmi ${REF}
+    podman unmount "$CREF"
+    podman rm "$CREF"
+    podman rmi ${REF}
     echo "::endgroup::"
 
     echo "::group:: Rechunk"
@@ -151,7 +150,7 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
     else
         PREV_REF="ghcr.io/${repo_organization}/${image}:${tag}"
     fi
-    sudo podman run --rm \
+    podman run --rm \
         --security-opt label=disable \
         -v "$PWD:/workspace" \
         -v "$PWD:/var/git" \
@@ -170,14 +169,16 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
     echo "::endgroup::"
 
     echo "::group:: Cleanup"
-    sudo find ${OUT_NAME} -type d -exec chmod 0755 {} \; || true
-    sudo find ${OUT_NAME}* -type f -exec chmod 0644 {} \; || true
-    sudo chown $(id -u):$(id -g) -R "${PWD}"
-    sudo podman volume rm cache_ostree
+    find ${OUT_NAME} -type d -exec chmod 0755 {} \; || true
+    find ${OUT_NAME}* -type f -exec chmod 0644 {} \; || true
+    if [[ -n "${SUDO_USER:-}" ]]; then
+        chown -R "${SUDO_UID}":"${SUDO_GID}" "${PWD}"
+    fi
+    podman volume rm cache_ostree
     echo "::endgroup::"
 
 [group('Build')]
-load_image $image=default_image_name $version=default_major_version $tag=default_tag:
+load-image $image=default_image_name $version=default_major_version $tag=default_tag:
     #!/usr/bin/env bash
     set -eou pipefail
 
@@ -190,6 +191,51 @@ load_image $image=default_image_name $version=default_major_version $tag=default
     done
     podman images
     rm -rf $OUT_NAME
+
+[group('Build')]
+build-iso $image=default_image_name $version=default_major_version $tag=default_tag $local="true":
+    #!/usr/bin/env bash
+    set -eou pipefail
+
+    if [[ "${UID}" -ne "0" ]]; then
+        echo "Must be run as root!"
+        exit 1
+    fi
+
+    mkdir -p output
+
+    isoname="${image}-${version}-${tag}.iso"
+
+    rm -f "output/${isoname}"*
+
+    if [[ $local == "true" ]]; then
+        id="$(podman images --filter reference="${image}:${tag}" --format "{{{{.ID}}")"
+        if [[ $id != "" ]]; then
+            src="containers-storage:${id}"
+        else
+            echo "${image}:${tag} not found locally!"
+            exit 1
+        fi
+    else
+        src="docker://ghcr.io/${repo_organization}/${image}:${tag}"
+    fi
+
+    podman run --rm --privileged \
+        --pull=newer \
+        --volume ./output:/build-container-installer/build \
+        --volume /var/lib/containers/storage:/var/lib/containers/storage \
+        ghcr.io/jasonn3/build-container-installer:latest \
+        VERSION=$version \
+        IMAGE_NAME=$image \
+        IMAGE_TAG=$tag \
+        IMAGE_REPO="ghcr.io/${repo_organization}" \
+        IMAGE_SRC=$src \
+        ISO_NAME="build/${isoname}"
+        VARIANT=kinoite
+    
+    if [[ -n "${SUDO_USER:-}" ]]; then
+        chown -R "${SUDO_UID}":"${SUDO_GID}" output
+    fi
 
 # Check Just Syntax
 [group('Just')]
