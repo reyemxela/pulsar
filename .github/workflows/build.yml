@@ -85,7 +85,7 @@ jobs:
       - name: Rechunk Image
         shell: bash
         run: |
-          just rechunk ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }} ${{ env.FRESH_RECHUNK }}
+          sudo just rechunk ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }} ${{ env.FRESH_RECHUNK }}
 
       - name: Load and Tag Image
         shell: bash
