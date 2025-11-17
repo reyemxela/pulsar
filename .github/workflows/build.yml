@@ -90,7 +90,7 @@ jobs:
       - name: Load and Tag Image
         shell: bash
         run: |
-          just load_image ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }}
+          just load-image ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }}
 
       - name: Remove auxiliary images
         run: |
