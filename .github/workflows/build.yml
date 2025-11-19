@@ -3,13 +3,11 @@ on:
   pull_request:
     branches:
       - main
-      - testing
   schedule:
     - cron: '0 22 * * 5'  # 10pm UTC on Friday (5/6pm EDT) - after upstream builds and before auto-updates at 4am Saturday
   push:
     branches:
       - main
-      - testing
     paths-ignore:
       - '**/README.md'
   workflow_dispatch:
