@@ -158,7 +158,7 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
         -e REPO=/var/ostree/repo \
         -e PREV_REF=$PREV_REF \
         -e OUT_NAME="$OUT_NAME" \
-        -e LABELS="'$(just get-labels $image)'" \
+        -e LABELS="$(just get-labels $image)" \
         -e VERSION="$VERSION" \
         -e VERSION_FN=/workspace/version.txt \
         -e OUT_REF="oci:$OUT_NAME" \
