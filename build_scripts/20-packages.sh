@@ -40,7 +40,7 @@ virt=(
 )
 
 server=(
-  "https://github.com/trapexit/mergerfs/releases/download/2.40.2/mergerfs-2.40.2-1.fc41.x86_64.rpm"
+  "https://github.com/trapexit/mergerfs/releases/download/2.41.0/mergerfs-2.41.0-1.fc43.x86_64.rpm"
   "snapraid"
 )
 
