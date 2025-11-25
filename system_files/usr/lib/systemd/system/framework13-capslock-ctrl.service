@@ -1,0 +1,13 @@
+[Unit]
+Description=Remap Capslock to LCtrl on FW13
+
+[Service]
+Type=oneshot
+# capslock key is 4,4 in the keyboard matrix
+# 0x0014 is L_Ctrl scancode, 0x0058 is Capslock
+ExecStart=/usr/bin/framework_tool --remap-key 4 4 0x0014
+ExecStop=/usr/bin/framework_tool --remap-key 4 4 0x0058
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target
