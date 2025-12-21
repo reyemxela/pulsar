@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_name: [pulsar, pulsar-deck, pulsar-cli, pulsar-cli-nvidia]
+        image_name: [pulsar, pulsar-deck, pulsar-cli]
         major_version: [43]
           
     steps:
