@@ -25,6 +25,7 @@ shared=(
   "powertop"
   "ramalama"
   "rar"
+  "renameutils"
   "shellcheck"
   "strace"
   "tailscale"
