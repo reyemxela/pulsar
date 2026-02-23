@@ -14,6 +14,7 @@ shared=(
   "entr"
   "etckeeper"
   "evtest"
+  "fail2ban"
   "gh"
   "netcat"
   "nmap"
