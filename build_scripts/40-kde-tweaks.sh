@@ -10,11 +10,10 @@ set -ouex pipefail
 mkdir -p /usr/share/kwin/scripts
 
 # adapta KDE theme
-TMPFILE="$(mktemp)"
 TMPDIR="$(mktemp -d)"
 
-curl -sSL https://github.com/PapirusDevelopmentTeam/adapta-kde/archive/master.tar.gz -o "$TMPFILE"
-tar -xzf "$TMPFILE" --no-same-owner --no-same-permissions -C "$TMPDIR"
+curl -sSL https://github.com/PapirusDevelopmentTeam/adapta-kde/archive/master.tar.gz |
+  tar xzf --no-same-owner --no-same-permissions -C "$TMPDIR"
 
 cp -R \
   "$TMPDIR/adapta-kde-master/aurorae" \
@@ -23,18 +22,17 @@ cp -R \
   "$TMPDIR/adapta-kde-master/plasma" \
   /usr/share
 
-rm -rf "$TMPFILE" "$TMPDIR"
+rm -rf "$TMPDIR"
 
 # switch-to-previous-desktop script
-TMPFILE="$(mktemp)"
 TMPDIR="$(mktemp -d)"
 
-curl -sSL https://invent.kde.org/vladz/switch-to-previous-desktop/-/archive/master/switch-to-previous-desktop-master.tar.gz -o "$TMPFILE"
-tar -xzf "$TMPFILE" --no-same-owner --no-same-permissions -C "$TMPDIR"
+curl -sSL https://invent.kde.org/vladz/switch-to-previous-desktop/-/archive/master/switch-to-previous-desktop-master.tar.gz |
+  tar xzf --no-same-owner --no-same-permissions -C "$TMPDIR"
 
 kpackagetool6 --type=KWin/Script -g -i "$TMPDIR/switch-to-previous-desktop-master/package"
 
-rm -rf "$TMPFILE" "$TMPDIR"
+rm -rf "$TMPDIR"
 
 # add dynamicwallpaperconverter to accompany plasma-wallpapers-dynamic
 curl -sSL https://raw.githubusercontent.com/zzag/plasma5-wallpapers-dynamic-extras/master/dynamicwallpaperconverter -o /usr/bin/dynamicwallpaperconverter
