@@ -24,7 +24,7 @@ third_party_install_isolated() {
 
   echo "Installing ${packages[*]} from $repo_id (isolated)"
 
-  dnf config-manager addrepo --from-repofile="$repo_url"
+  dnf config-manager addrepo --overwrite --from-repofile="$repo_url"
   dnf config-manager setopt "$repo_id".enabled=0
   dnf -y install --enablerepo="$repo_id" "${packages[@]}"
 }
