@@ -1,6 +1,6 @@
 export repo_organization := env("GITHUB_REPOSITORY_OWNER", "reyemxela")
 export default_image_name := env("IMAGE_NAME", "pulsar")
-export default_major_version := env("MAJOR_VERSION", "43")
+export default_major_version := env("MAJOR_VERSION", "44")
 export default_tag := env("DEFAULT_TAG", "stable")
 base_images := '(
     [pulsar]="bazzite:stable-${version}"
