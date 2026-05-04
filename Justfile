@@ -79,7 +79,7 @@ get-tags $tag=default_tag $version=default_major_version:
 build $image=default_image_name $version=default_major_version $tag=default_tag:
     #!/usr/bin/env bash
 
-    base_image="$(just get-base-image ${image})"
+    base_image="$(just get-base-image ${image} ${version})"
     image_flavor="$(just get-image-flavor ${image})"
 
     BUILD_ARGS=()
