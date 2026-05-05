@@ -91,17 +91,17 @@ jobs:
       - name: Build Image
         shell: bash
         run: |
-          sudo just build ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.DEFAULT_TAG }}
+          sudo -E just build ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.DEFAULT_TAG }}
 
       - name: Rechunk Image
         shell: bash
         run: |
-          sudo just rechunk ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.DEFAULT_TAG }} ${{ env.FRESH_RECHUNK }}
+          sudo -E just rechunk ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.DEFAULT_TAG }} ${{ env.FRESH_RECHUNK }}
 
       - name: Check Secureboot
         shell: bash
         run: |
-          sudo just secureboot ${{ env.IMAGE_NAME }} ${{ env.DEFAULT_TAG }}
+          sudo -E just secureboot ${{ env.IMAGE_NAME }} ${{ env.DEFAULT_TAG }}
 
       - name: Tag Image
         shell: bash
