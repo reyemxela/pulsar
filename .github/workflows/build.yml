@@ -114,6 +114,12 @@ jobs:
         run: |
           echo "LOWERCASE_REGISTRY=${IMAGE_REGISTRY,,}" >> $GITHUB_ENV
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 5
+        with:
+          limit-access-to-actor: true
+
       # TODO: remove me when we have a new podman in 26.04 runners
       # needed because old podman doesn't push layer annotations for
       # the rpm-ostree rechunker at all
@@ -168,7 +174,6 @@ jobs:
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${LOWERCASE}/${IMAGE_NAME}@${TAGS}
-
 
   workflow-keepalive:
     if: github.event_name == 'schedule'
