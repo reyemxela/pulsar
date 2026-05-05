@@ -9,10 +9,11 @@ base_images := '(
     [pulsar-cli]="base-main:${version}"
     [pulsar-cli-nvidia]="base-main:${version}"
 )'
+just := just_executable()
 
 [private]
 default:
-    @just --list
+    @{{ just }} --list
 
 # prints "base_image_name:tag" for the specified image/version
 [group('Utility')]
@@ -123,8 +124,8 @@ secureboot $image=default_image_name $tag=default_tag:
 build $image=default_image_name $version=default_major_version $tag=default_tag:
     #!/usr/bin/env bash
 
-    base_image="$(just get-base-image ${image} ${version})"
-    image_flavor="$(just get-image-flavor ${image})"
+    base_image="$({{ just }} get-base-image ${image} ${version})"
+    image_flavor="$({{ just }} get-image-flavor ${image})"
 
     BUILD_ARGS=()
     BUILD_ARGS+=("--build-arg" "IMAGE_NAME=${image}")
@@ -151,7 +152,7 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
         exit 1
     fi
 
-    base_image="ghcr.io/ublue-os/$(just get-base-image ${image} ${version})"
+    base_image="ghcr.io/ublue-os/$({{ just }} get-base-image ${image} ${version})"
 
     IN_IMAGE="localhost/${image}:${tag}"
     OUT_IMAGE="localhost/${image}:${tag}-chunked"
@@ -177,7 +178,7 @@ tag-image $image=default_image_name $version=default_major_version $tag=default_
     #!/usr/bin/env bash
     set -eou pipefail
 
-    for t in $(just get-tags $tag $version); do
+    for t in $({{ just }} get-tags $tag $version); do
         podman tag localhost/${image}:${tag} localhost/${image}:${t}
     done
     podman images
@@ -233,10 +234,10 @@ check:
     #!/usr/bin/bash
     find . -type f -name "*.just" | while read -r file; do
     	echo "Checking syntax: $file"
-    	just --unstable --fmt --check -f $file
+    	{{ just }} --unstable --fmt --check -f $file
     done
     echo "Checking syntax: Justfile"
-    just --unstable --fmt --check -f Justfile
+    {{ just }} --unstable --fmt --check -f Justfile
 
 # Fix Just Syntax
 [group('Just')]
@@ -244,7 +245,7 @@ fix:
     #!/usr/bin/bash
     find . -type f -name "*.just" | while read -r file; do
     	echo "Checking syntax: $file"
-    	just --unstable --fmt -f $file
+    	{{ just }} --unstable --fmt -f $file
     done
     echo "Checking syntax: Justfile"
-    just --unstable --fmt -f Justfile || { exit 1; }
+    {{ just }} --unstable --fmt -f Justfile || { exit 1; }
