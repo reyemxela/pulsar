@@ -40,12 +40,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_name: [pulsar, pulsar-cli]
+        image_name: [pulsar-cli]
         major_version: [44]
-        include:
-          - image_name: pulsar-deck
-            major_version: 43
-          
+        # image_name: [pulsar, pulsar-cli]
+        # major_version: [44]
+        # include:
+        #   - image_name: pulsar-deck
+        #     major_version: 43
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,7 +118,6 @@ jobs:
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 5
         with:
           limit-access-to-actor: true
 
