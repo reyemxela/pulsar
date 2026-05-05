@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - testing
     paths-ignore:
       - '**/README.md'
   workflow_dispatch:
@@ -22,7 +23,6 @@ on:
 
 env:
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
-  BASE_IMAGE_REGISTRY: "ghcr.io/ublue-os"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
@@ -50,112 +50,125 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
-      - name: Install just
-        uses: ./.github/actions/install-just
-      
+      # mount /mnt as /var/lib/containers
+      - name: Mount BTRFS for podman storage
+        id: container-storage-action
+        uses: ublue-os/container-storage-action@dc1f4c8f17b672069e921f001132f7cf98a423a6
+        continue-on-error: true
+        with:
+          target-dir: /var/lib/containers
+          mount-opts: compress-force=zstd:2
+          loopback-free: '1'
+
+      - name: Install Just
+        run: |
+          /home/linuxbrew/.linuxbrew/bin/brew install just
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+
       # this first run of `just` helps makes sure /run/user/(uid)/just is created.
       # if the first run is a `sudo just`, permissions get dumb.
       - name: Check justfiles
         shell: bash
         run: |
           just check
-        
+
       - name: Matrix Variables
         shell: bash
         run: |
           IMAGE_NAME="${{ matrix.image_name }}"
           MAJOR_VERSION="${{ matrix.major_version }}"
           FRESH_RECHUNK="${{ github.event.inputs.fresh-rechunk }}"
-          TAG="${{ github.ref_name == 'main' && 'stable' || 'testing' }}"
-          TAGS="$(just get-tags ${TAG} ${MAJOR_VERSION})"
+          DEFAULT_TAG="${{ github.ref_name == 'main' && 'stable' || 'testing' }}"
+          ALIAS_TAGS="$(just get-tags ${DEFAULT_TAG} ${MAJOR_VERSION})"
 
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
           echo "MAJOR_VERSION=${MAJOR_VERSION}" >> $GITHUB_ENV
           echo "FRESH_RECHUNK=${FRESH_RECHUNK}" >> $GITHUB_ENV
-          echo "TAG=${TAG}" >> $GITHUB_ENV
-          echo "TAGS=${TAGS}" >> $GITHUB_ENV
+          echo "DEFAULT_TAG=${DEFAULT_TAG}" >> $GITHUB_ENV
+          echo "ALIAS_TAGS=${ALIAS_TAGS}" >> $GITHUB_ENV
           
-      - name: Maximize build space
-        uses: ublue-os/remove-unwanted-software@v9
-      
+
       - name: Build Image
         shell: bash
         run: |
-          sudo just build ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }}
+          sudo just build ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.DEFAULT_TAG }}
 
       - name: Rechunk Image
         shell: bash
         run: |
-          sudo just rechunk ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }} ${{ env.FRESH_RECHUNK }}
+          sudo just rechunk ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.DEFAULT_TAG }} ${{ env.FRESH_RECHUNK }}
 
-      - name: Load and Tag Image
+      - name: Check Secureboot
         shell: bash
         run: |
-          just load-image ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.TAG }}
+          sudo just secureboot ${{ env.IMAGE_NAME }} ${{ env.DEFAULT_TAG }}
 
-      - name: Remove auxiliary images
+      - name: Tag Image
+        shell: bash
         run: |
-          sudo podman rmi --all
+          just tag-image ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.DEFAULT_TAG }}
 
-      # - name: Check Secureboot
-      #   shell: bash
-      #   run: |
-      #     set -x
-      #     if [[ ! $(command -v sbverify) || ! $(command -v curl) || ! $(command -v openssl) ]]; then
-      #       sudo apt update
-      #       sudo apt install sbsigntool curl openssl
-      #     fi
-      #     TMP=$(podman create rechunked-img bash)
-      #     podman cp "$TMP:/usr/lib/modules/${{ env.KERNEL_VERSION }}/vmlinuz" .
-      #     podman rm $TMP
-      #     sbverify --list vmlinuz
-      #     curl --retry 3 -Lo kernel-sign.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key.der
-      #     curl --retry 3 -Lo akmods.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key_2.der
-      #     openssl x509 -in kernel-sign.der -out kernel-sign.crt
-      #     openssl x509 -in akmods.der -out akmods.crt
-      #     sbverify --cert kernel-sign.crt vmlinuz || exit 1
-      #     sbverify --cert akmods.crt vmlinuz || exit 1
-  
-      # Workaround bug where capital letters in your GitHub username make it impossible to push to GHCR.
-      # https://github.com/macbre/push-to-ghcr/issues/12
       - name: Lowercase Registry
-        id: registry_case
-        uses: ASzc/change-string-case-action@v6
-        with:
-          string: ${{ env.IMAGE_REGISTRY }}
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+        run: |
+          echo "LOWERCASE_REGISTRY=${IMAGE_REGISTRY,,}" >> $GITHUB_ENV
 
-      - name: Push To GHCR
-        uses: Wandalen/wretry.action@v3.5.0
+      # TODO: remove me when we have a new podman in 26.04 runners
+      # needed because old podman doesn't push layer annotations for
+      # the rpm-ostree rechunker at all
+      - name: install podman from brew
+        if: github.event_name != 'pull_request'
+        run: |
+          /home/linuxbrew/.linuxbrew/bin/brew install podman
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push to GHCR
         id: push
         if: github.event_name != 'pull_request'
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
-          REGISTRY_USER: ${{ github.actor }}
-          REGISTRY_PASSWORD: ${{ github.token }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          LOWERCASE: ${{ env.LOWERCASE_REGISTRY }}
+          DEFAULT_TAG: ${{ env.DEFAULT_TAG }}
+          ALIAS_TAGS: ${{ env.ALIAS_TAGS }}
         with:
-          action: redhat-actions/push-to-registry@v2
-          attempt_limit: 3
-          attempt_delay: 15000
-          with: |
-            image: ${{ env.IMAGE_NAME }}
-            tags: ${{ env.TAGS }}
-            registry: ${{ steps.registry_case.outputs.lowercase }}
-            username: ${{ env.REGISTRY_USER }}
-            password: ${{ env.REGISTRY_PASSWORD }}
+          max_attempts: 3
+          retry_wait_seconds: 15
+          timeout_minutes: 10
+          command: |
+            set -euox pipefail
+            # HACK: push a second time so layer annotations are pushed
+            # TODO: remove me when https://github.com/containers/podman/issues/27796 fixed
+
+            for tag in ${ALIAS_TAGS}; do
+              sudo -E /home/linuxbrew/.linuxbrew/bin/podman push --compression-format=zstd --compression-level=3 ${IMAGE_NAME}:${tag} ${LOWERCASE}/${IMAGE_NAME}:${tag}
+            done
+
+            for tag in ${ALIAS_TAGS}; do
+              sudo -E /home/linuxbrew/.linuxbrew/bin/podman push --compression-format=zstd --compression-level=3 ${IMAGE_NAME}:${tag} ${LOWERCASE}/${IMAGE_NAME}:${tag}
+            done
+
+            digest=$(skopeo inspect docker://${LOWERCASE}/${IMAGE_NAME}:${DEFAULT_TAG} --format '{{.Digest}}')
+
+            echo "digest=${digest}" >> $GITHUB_OUTPUT
 
       - name: Sign container image
-        uses: EyeCantCU/cosign-action/sign@v0.3.0
         if: github.event_name != 'pull_request'
-        with:
-          registry: ${{ env.IMAGE_REGISTRY }}
-          containers: ${{ env.IMAGE_NAME }}
-          registry-token: ${{ secrets.GITHUB_TOKEN }}
-          signing-secret: ${{ secrets.SIGNING_SECRET }}
-          tags: ${{ steps.push.outputs.outputs && fromJSON(steps.push.outputs.outputs).digest }}
-
-      - name: Echo outputs
-        if: github.event_name != 'pull_request'
+        env:
+          TAGS: ${{ steps.push.outputs.digest }}
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          LOWERCASE: ${{ env.LOWERCASE_REGISTRY }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
         run: |
-          echo "${{ toJSON(steps.push.outputs) }}"
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${LOWERCASE}/${IMAGE_NAME}@${TAGS}
+
 
   workflow-keepalive:
     if: github.event_name == 'schedule'
