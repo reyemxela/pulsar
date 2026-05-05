@@ -106,7 +106,7 @@ jobs:
       - name: Tag Image
         shell: bash
         run: |
-          just tag-image ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.DEFAULT_TAG }}
+          sudo -E $(command -v just) tag-image ${{ env.IMAGE_NAME }} ${{ env.MAJOR_VERSION }} ${{ env.DEFAULT_TAG }}
 
       - name: Lowercase Registry
         env:
