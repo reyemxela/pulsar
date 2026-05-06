@@ -9,10 +9,11 @@ base_images := '(
     [pulsar-cli]="base-main:${version}"
     [pulsar-cli-nvidia]="base-main:${version}"
 )'
+just := just_executable()
 
 [private]
 default:
-    @just --list
+    @{{ just }} --list
 
 # prints "base_image_name:tag" for the specified image/version
 [group('Utility')]
@@ -74,13 +75,59 @@ get-tags $tag=default_tag $version=default_major_version:
     fi
     echo "${tags}"
 
+[group('Utility')]
+secureboot $image=default_image_name $tag=default_tag:
+    #!/usr/bin/bash
+    set -eoux pipefail
+
+    # Get the vmlinuz to check
+    kernel_release=$(podman inspect "${image}":"${tag}" | jq -r '.[].Config.Labels["ostree.linux"]')
+    TMP=$(podman create "${image}":"${tag}" bash)
+    podman cp "$TMP":/usr/lib/modules/"${kernel_release}"/vmlinuz /tmp/vmlinuz
+    podman rm "$TMP"
+
+    # Get the Public Certificates
+    curl --retry 3 -Lo /tmp/kernel-sign.der https://github.com/ublue-os/akmods/raw/main/certs/public_key.der
+    curl --retry 3 -Lo /tmp/akmods.der https://github.com/ublue-os/akmods/raw/main/certs/public_key_2.der
+    openssl x509 -in /tmp/kernel-sign.der -out /tmp/kernel-sign.crt
+    openssl x509 -in /tmp/akmods.der -out /tmp/akmods.crt
+
+    # Make sure we have sbverify
+    CMD="$(command -v sbverify || true)"
+    if [[ -z "${CMD:-}" ]]; then
+        temp_name="sbverify-${RANDOM}"
+        podman run -dt \
+            --entrypoint /bin/sh \
+            --volume /tmp/vmlinuz:/tmp/vmlinuz:z \
+            --volume /tmp/kernel-sign.crt:/tmp/kernel-sign.crt:z \
+            --volume /tmp/akmods.crt:/tmp/akmods.crt:z \
+            --name ${temp_name} \
+            alpine:edge
+        podman exec ${temp_name} apk add sbsigntool
+        CMD="podman exec ${temp_name} /usr/bin/sbverify"
+    fi
+
+    # Confirm that Signatures Are Good
+    $CMD --list /tmp/vmlinuz
+    returncode=0
+    if ! $CMD --cert /tmp/kernel-sign.crt /tmp/vmlinuz || ! $CMD --cert /tmp/akmods.crt /tmp/vmlinuz; then
+        echo "Secureboot Signature Failed...."
+        returncode=1
+    fi
+    if [[ -n "${temp_name:-}" ]]; then
+        podman rm -f "${temp_name}"
+    fi
+    exit "$returncode"
+
 # builds specified image as "image_name:tag"
 [group('Build')]
 build $image=default_image_name $version=default_major_version $tag=default_tag:
     #!/usr/bin/env bash
 
-    base_image="$(just get-base-image ${image} ${version})"
-    image_flavor="$(just get-image-flavor ${image})"
+    set -eoux pipefail
+
+    base_image="$({{ just }} get-base-image ${image} ${version})"
+    image_flavor="$({{ just }} get-image-flavor ${image})"
 
     BUILD_ARGS=()
     BUILD_ARGS+=("--build-arg" "IMAGE_NAME=${image}")
@@ -99,7 +146,6 @@ build $image=default_image_name $version=default_major_version $tag=default_tag:
 rechunk $image=default_image_name $version=default_major_version $tag=default_tag $fresh='false':
     #!/usr/bin/env bash
 
-    echo "::group:: Rechunk Build Prep"
     set -eou pipefail
 
     if [[ "${UID}" -ne "0" ]]; then
@@ -107,90 +153,32 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
         exit 1
     fi
 
-    REF=localhost/${image}:${tag}
-    RECHUNK=ghcr.io/hhd-dev/rechunk:latest
+    base_image="ghcr.io/ublue-os/$({{ just }} get-base-image ${image} ${version})"
+    image_name="localhost/${image}:${tag}"
 
-    CREF=$(podman create ${REF} bash)
-    MOUNT=$(podman mount "$CREF")
-    OUT_NAME="${image}_${tag}"
-    VERSION="${version}.$(date '+%Y%m%d')"
-
-    podman pull ${RECHUNK}
-    echo "::endgroup::"
-
-    echo "::group:: Rechunk Prune"
+    # TODO: add -previous-build when it's available in rpm-ostree
     podman run --rm \
-        --security-opt label=disable \
-        -v "$MOUNT":/var/tree \
-        -e TREE=/var/tree \
-        -u 0:0 \
-        ${RECHUNK} \
-        /sources/rechunk/1_prune.sh
-    echo "::endgroup::"
-
-    echo "::group:: Create Tree"
-    podman run --rm \
-        --security-opt label=disable \
-        -v "$MOUNT":/var/tree \
-        -e TREE=/var/tree \
-        -v "cache_ostree:/var/ostree" \
-        -e REPO=/var/ostree/repo \
-        -e RESET_TIMESTAMP=1 \
-        -u 0:0 \
-        ${RECHUNK} \
-        /sources/rechunk/2_create.sh
-    podman unmount "$CREF"
-    podman rm "$CREF"
-    podman rmi ${REF}
-    echo "::endgroup::"
-
-    echo "::group:: Rechunk"
-    if [[ $fresh == "true" ]]; then
-        PREV_REF=""
-    else
-        PREV_REF="ghcr.io/${repo_organization}/${image}:${tag}"
-    fi
-    podman run --rm \
-        --security-opt label=disable \
-        -v "$PWD:/workspace" \
-        -v "$PWD:/var/git" \
-        -v cache_ostree:/var/ostree \
-        -e REPO=/var/ostree/repo \
-        -e PREV_REF=$PREV_REF \
-        -e OUT_NAME="$OUT_NAME" \
-        -e LABELS="$(just get-labels $image)" \
-        -e VERSION="$VERSION" \
-        -e VERSION_FN=/workspace/version.txt \
-        -e OUT_REF="oci:$OUT_NAME" \
-        -e GIT_DIR="/var/git" \
-        -u 0:0 \
-        ${RECHUNK} \
-        /sources/rechunk/3_chunk.sh
-    echo "::endgroup::"
-
-    echo "::group:: Cleanup"
-    find ${OUT_NAME} -type d -exec chmod 0755 {} \; || true
-    find ${OUT_NAME}* -type f -exec chmod 0644 {} \; || true
-    if [[ -n "${SUDO_USER:-}" ]]; then
-        chown -R "${SUDO_UID}":"${SUDO_GID}" "${PWD}"
-    fi
-    podman volume rm cache_ostree
-    echo "::endgroup::"
+        --pull=newer \
+        --privileged \
+        -v "/var/lib/containers:/var/lib/containers" \
+        --entrypoint /usr/bin/rpm-ostree \
+        "${base_image}" \
+        compose build-chunked-oci \
+        --max-layers 127 \
+        --format-version=2 \
+        --bootc \
+        --from "${image_name}" \
+        --output "containers-storage:${image_name}"
 
 [group('Build')]
-load-image $image=default_image_name $version=default_major_version $tag=default_tag:
+tag-image $image=default_image_name $version=default_major_version $tag=default_tag:
     #!/usr/bin/env bash
     set -eou pipefail
 
-    OUT_NAME="${image}_${tag}"
-
-    IMAGE_ID=$(podman pull oci:$OUT_NAME)
-    podman tag ${IMAGE_ID} localhost/${image}:${tag}
-    for t in $(just get-tags $tag $version); do
-        podman tag ${IMAGE_ID} localhost/${image}:${t}
+    for t in $({{ just }} get-tags $tag $version); do
+        podman tag localhost/${image}:${tag} localhost/${image}:${t}
     done
     podman images
-    rm -rf $OUT_NAME
 
 [group('Build')]
 build-iso $image=default_image_name $version=default_major_version $tag=default_tag $local="true":
@@ -243,10 +231,10 @@ check:
     #!/usr/bin/bash
     find . -type f -name "*.just" | while read -r file; do
     	echo "Checking syntax: $file"
-    	just --unstable --fmt --check -f $file
+    	{{ just }} --unstable --fmt --check -f $file
     done
     echo "Checking syntax: Justfile"
-    just --unstable --fmt --check -f Justfile
+    {{ just }} --unstable --fmt --check -f Justfile
 
 # Fix Just Syntax
 [group('Just')]
@@ -254,7 +242,7 @@ fix:
     #!/usr/bin/bash
     find . -type f -name "*.just" | while read -r file; do
     	echo "Checking syntax: $file"
-    	just --unstable --fmt -f $file
+    	{{ just }} --unstable --fmt -f $file
     done
     echo "Checking syntax: Justfile"
-    just --unstable --fmt -f Justfile || { exit 1; }
+    {{ just }} --unstable --fmt -f Justfile || { exit 1; }
