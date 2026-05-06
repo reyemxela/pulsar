@@ -114,23 +114,34 @@ jobs:
         run: |
           echo "LOWERCASE_REGISTRY=${IMAGE_REGISTRY,,}" >> $GITHUB_ENV
 
-      - name: Push To GHCR
-        uses: Wandalen/wretry.action@v3.5.0
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push to GHCR
         id: push
         if: github.event_name != 'pull_request'
+        uses: nick-fields/retry@v4.0.0
         env:
-          REGISTRY_USER: ${{ github.actor }}
-          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          LOWERCASE: ${{ env.LOWERCASE_REGISTRY }}
+          DEFAULT_TAG: ${{ env.DEFAULT_TAG }}
+          ALIAS_TAGS: ${{ env.ALIAS_TAGS }}
         with:
-          action: redhat-actions/push-to-registry@v2
-          attempt_limit: 3
-          attempt_delay: 15000
-          with: |
-            image: ${{ env.IMAGE_NAME }}
-            tags: ${{ env.ALIAS_TAGS }}
-            registry: ${{ env.LOWERCASE_REGISTRY }}
-            username: ${{ env.REGISTRY_USER }}
-            password: ${{ env.REGISTRY_PASSWORD }}
+          max_attempts: 3
+          retry_wait_seconds: 15
+          timeout_minutes: 10
+          command: |
+            set -euox pipefail
+            for tag in ${ALIAS_TAGS}; do
+              sudo -E podman push --compression-format=zstd --compression-level=3 ${IMAGE_NAME}:${tag} ${LOWERCASE}/${IMAGE_NAME}:${tag}
+            done
+
+            digest=$(skopeo inspect docker://${LOWERCASE}/${IMAGE_NAME}:${DEFAULT_TAG} --format '{{.Digest}}')
+
+            echo "digest=${digest}" >> $GITHUB_OUTPUT
 
       - name: Install Cosign
         if: github.event_name != 'pull_request'
