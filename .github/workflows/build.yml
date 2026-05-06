@@ -127,8 +127,8 @@ jobs:
           attempt_delay: 15000
           with: |
             image: ${{ env.IMAGE_NAME }}
-            tags: ${{ env.TAGS }}
-            registry: ${{ steps.registry_case.outputs.lowercase }}
+            tags: ${{ env.ALIAS_TAGS }}
+            registry: ${{ env.LOWERCASE_REGISTRY }}
             username: ${{ env.REGISTRY_USER }}
             password: ${{ env.REGISTRY_PASSWORD }}
 
