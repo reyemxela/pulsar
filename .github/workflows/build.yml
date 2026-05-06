@@ -40,13 +40,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_name: [pulsar-cli]
+        image_name: [pulsar, pulsar-cli]
         major_version: [44]
-        # image_name: [pulsar, pulsar-cli]
-        # major_version: [44]
-        # include:
-        #   - image_name: pulsar-deck
-        #     major_version: 43
+        include:
+          - image_name: pulsar-deck
+            major_version: 43
 
     steps:
       - name: Checkout
@@ -116,11 +114,6 @@ jobs:
         run: |
           echo "LOWERCASE_REGISTRY=${IMAGE_REGISTRY,,}" >> $GITHUB_ENV
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-
       # TODO: remove me when we have a new podman in 26.04 runners
       # needed because old podman doesn't push layer annotations for
       # the rpm-ostree rechunker at all
@@ -128,6 +121,13 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           /home/linuxbrew/.linuxbrew/bin/brew install podman
+
+          set -eux
+          which podman || true
+          podman system info || true
+
+          sudo which podman || true
+          sudo podman system info || true
 
       - name: Login to GitHub Container Registry
         if: github.event_name != 'pull_request'
