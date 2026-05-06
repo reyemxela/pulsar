@@ -124,6 +124,8 @@ secureboot $image=default_image_name $tag=default_tag:
 build $image=default_image_name $version=default_major_version $tag=default_tag:
     #!/usr/bin/env bash
 
+    set -eoux pipefail
+
     base_image="$({{ just }} get-base-image ${image} ${version})"
     image_flavor="$({{ just }} get-image-flavor ${image})"
 
@@ -144,7 +146,6 @@ build $image=default_image_name $version=default_major_version $tag=default_tag:
 rechunk $image=default_image_name $version=default_major_version $tag=default_tag $fresh='false':
     #!/usr/bin/env bash
 
-    echo "::group:: Rechunk Build Prep"
     set -eou pipefail
 
     if [[ "${UID}" -ne "0" ]]; then
@@ -153,12 +154,11 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
     fi
 
     base_image="ghcr.io/ublue-os/$({{ just }} get-base-image ${image} ${version})"
+    image_name="localhost/${image}:${tag}"
 
-    IN_IMAGE="localhost/${image}:${tag}"
-    OUT_IMAGE="localhost/${image}:${tag}-chunked"
-
-
+    # TODO: add -previous-build when it's available in rpm-ostree
     podman run --rm \
+        --pull=newer \
         --privileged \
         -v "/var/lib/containers:/var/lib/containers" \
         --entrypoint /usr/bin/rpm-ostree \
@@ -167,11 +167,8 @@ rechunk $image=default_image_name $version=default_major_version $tag=default_ta
         --max-layers 127 \
         --format-version=2 \
         --bootc \
-        --from "${IN_IMAGE}" \
-        --output "containers-storage:${OUT_IMAGE}"
-
-    podman tag "${OUT_IMAGE}" "${IN_IMAGE}"
-    podman image rm -f "${OUT_IMAGE}"
+        --from "${image_name}" \
+        --output "containers-storage:${image_name}"
 
 [group('Build')]
 tag-image $image=default_image_name $version=default_major_version $tag=default_tag:
