@@ -56,6 +56,10 @@ shared() {
     "unzip"
     "zsh"
   )
+  remove=(
+    "firefox"
+    "firefox-langpacks"
+  )
 
   dnf5 -y install "${packages[@]}"
 
@@ -69,6 +73,10 @@ shared() {
 
   copr_install_isolated "ublue-os/packages" \
     "uupd"
+
+  if [[ "${#remove[@]}" -gt 0 ]]; then
+    dnf5 -y remove "${remove[@]}"
+  fi
 }
 
 
