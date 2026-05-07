@@ -139,7 +139,7 @@ build $image=default_image_name $version=default_major_version $tag=default_tag:
     LABELS+=("--label" "io.artifacthub.package.license=Apache-2.0")
     LABELS+=("--label" "containers.bootc=1")
 
-    echo podman build \
+    podman build \
         "${BUILD_ARGS[@]}" \
         "${LABELS[@]}" \
         --pull=newer \
