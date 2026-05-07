@@ -39,28 +39,6 @@ get-image-flavor $image=default_image_name:
 
     echo "$image_flavor"
 
-# prints container labels
-[group('Utility')]
-get-labels $image=default_image_name:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    echo "\
-    org.opencontainers.image.created=$(date -u +%Y\-%m\-%d\T%H\:%M\:%S\Z)
-    org.opencontainers.image.description=Customized Universal Blue images with some extras
-    org.opencontainers.image.documentation=https://github.com/${repo_organization}/pulsar
-    org.opencontainers.image.source=https://github.com/${repo_organization}/pulsar/blob/main/Containerfile
-    org.opencontainers.image.title=${image}
-    org.opencontainers.image.url=https://github.com/${repo_organization}/pulsar
-    org.opencontainers.image.vendor=${repo_organization}
-    io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${repo_organization}/pulsar/refs/heads/main/README.md
-    io.artifacthub.package.logo-url=https://raw.githubusercontent.com/${repo_organization}/pulsar/refs/heads/main/logo.svg
-    io.artifacthub.package.maintainers=[{\"name\":\"reyemxela\",\"email\":\"alexwreyem@gmail.com\"}]
-    io.artifacthub.package.keywords=bootc,fedora,pulsar,ublue,universal-blue
-    io.artifacthub.package.license=Apache-2.0
-    containers.bootc=1
-    "
-
 # prints tags for the container image
 [group('Utility')]
 get-tags $tag=default_tag $version=default_major_version:
@@ -129,6 +107,15 @@ build $image=default_image_name $version=default_major_version $tag=default_tag:
     base_image="$({{ just }} get-base-image ${image} ${version})"
     image_flavor="$({{ just }} get-image-flavor ${image})"
 
+    ver="${version}.$(date '+%Y%m%d')"
+    prev_ver="$(skopeo inspect docker://ghcr.io/${repo_organization}/${image}:${tag} |jq '.Labels["org.opencontainers.image.version"]')"
+    if [[ "$prev_ver" =~ "$ver" ]]; then
+        shopt -s extglob
+        point=${prev_ver/#${ver}?(.)/}
+        ((++point))
+        ver="${ver}.${point}"
+    fi
+
     BUILD_ARGS=()
     BUILD_ARGS+=("--build-arg" "IMAGE_NAME=${image}")
     BUILD_ARGS+=("--build-arg" "IMAGE_FLAVOR=${image_flavor}")
@@ -136,8 +123,25 @@ build $image=default_image_name $version=default_major_version $tag=default_tag:
     BUILD_ARGS+=("--build-arg" "BASE_IMAGE=${base_image}")
     BUILD_ARGS+=("--build-arg" "MAJOR_VERSION=${version}")
 
-    podman build \
+    LABELS=()
+    LABELS+=("--label" "org.opencontainers.image.created=$(date -u +%Y\-%m\-%d\T%H\:%M\:%S\Z)")
+    LABELS+=("--label" "org.opencontainers.image.version=${ver}")
+    LABELS+=("--label" "org.opencontainers.image.description=Customized Universal Blue images with some extras")
+    LABELS+=("--label" "org.opencontainers.image.documentation=https://github.com/${repo_organization}/pulsar")
+    LABELS+=("--label" "org.opencontainers.image.source=https://github.com/${repo_organization}/pulsar/blob/main/Containerfile")
+    LABELS+=("--label" "org.opencontainers.image.title=${image}")
+    LABELS+=("--label" "org.opencontainers.image.url=https://github.com/${repo_organization}/pulsar")
+    LABELS+=("--label" "org.opencontainers.image.vendor=${repo_organization}")
+    LABELS+=("--label" "io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${repo_organization}/pulsar/refs/heads/main/README.md")
+    LABELS+=("--label" "io.artifacthub.package.logo-url=https://raw.githubusercontent.com/${repo_organization}/pulsar/refs/heads/main/logo.svg")
+    LABELS+=("--label" "io.artifacthub.package.maintainers=[{\"name\":\"reyemxela\",\"email\":\"alexwreyem@gmail.com\"}]")
+    LABELS+=("--label" "io.artifacthub.package.keywords=bootc,fedora,pulsar,ublue,universal-blue")
+    LABELS+=("--label" "io.artifacthub.package.license=Apache-2.0")
+    LABELS+=("--label" "containers.bootc=1")
+
+    echo podman build \
         "${BUILD_ARGS[@]}" \
+        "${LABELS[@]}" \
         --pull=newer \
         --tag "${image}:${tag}" \
         .
