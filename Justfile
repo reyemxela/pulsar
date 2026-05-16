@@ -212,7 +212,7 @@ build-iso $image=default_image_name $version=default_major_version $tag=default_
         src="docker://ghcr.io/${repo_organization}/${image}:${tag}"
     fi
 
-    podman run --rm --privileged \
+    podman run --rm -it --privileged \
         --pull=newer \
         --volume ./output:/build-container-installer/build \
         --volume /var/lib/containers/storage:/var/lib/containers/storage \
@@ -222,7 +222,7 @@ build-iso $image=default_image_name $version=default_major_version $tag=default_
         IMAGE_TAG=$tag \
         IMAGE_REPO="ghcr.io/${repo_organization}" \
         IMAGE_SRC=$src \
-        ISO_NAME="build/${isoname}"
+        ISO_NAME="build/${isoname}" \
         VARIANT=kinoite
 
     if [[ -n "${SUDO_USER:-}" ]]; then
@@ -234,8 +234,8 @@ build-iso $image=default_image_name $version=default_major_version $tag=default_
 check:
     #!/usr/bin/bash
     find . -type f -name "*.just" | while read -r file; do
-    	echo "Checking syntax: $file"
-    	{{ just }} --unstable --fmt --check -f $file
+        echo "Checking syntax: $file"
+        {{ just }} --unstable --fmt --check -f $file
     done
     echo "Checking syntax: Justfile"
     {{ just }} --unstable --fmt --check -f Justfile
@@ -245,8 +245,8 @@ check:
 fix:
     #!/usr/bin/bash
     find . -type f -name "*.just" | while read -r file; do
-    	echo "Checking syntax: $file"
-    	{{ just }} --unstable --fmt -f $file
+        echo "Checking syntax: $file"
+        {{ just }} --unstable --fmt -f $file
     done
     echo "Checking syntax: Justfile"
     {{ just }} --unstable --fmt -f Justfile || { exit 1; }
